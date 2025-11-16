@@ -1,0 +1,5 @@
+branch:
+  - buttons:
+      - name: 手动同步到GITHUB
+        description: 手动同步到GITHUB
+        event: web_trigger_to_github

@@ -1,0 +1,31 @@
+{
+  "name": "up-actions",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "package": "ncc build dist/main.js -o dist",
+    "mbump": "mbump",
+    "build:full": "pnpm build && pnpm package && pnpm mbump",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@octokit/core": "^7.0.6",
+    "@samkirkland/ftp-deploy": "^1.2.5",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@mznjs/mbump": "^1.0.6",
+    "@vercel/ncc": "^0.38.4",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [],
+  "author": "supbose",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.3"
+}

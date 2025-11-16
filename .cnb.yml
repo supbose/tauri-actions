@@ -1,0 +1,15 @@
+'**':
+  web_trigger_to_github:
+    - imports: https://cnb.cool/qingshuPrivate/setting/-/blob/main/envs.yml
+      stages:
+        - name: sync to github
+          image: docker.cnb.cool/mznjs/docker/github-sync # #tencentcom/git-sync
+          settings:
+            target_url: https://github.com/supbose/vitesse-nuxt-tauri.git
+            auth_type: https
+            username: ${GITHUB_USERNAME}
+            password: ${GITHUB_ACCESS_TOKEN}
+            git_user: ${GITHUB_USERNAME}
+            git_email: ${GITHUB_USERMAIL}
+            git_commit: false
+            branch: main
