@@ -3,9 +3,9 @@
     - imports: https://cnb.cool/qingshuPrivate/setting/-/blob/main/envs.yml
       stages:
         - name: sync to github
-          image: docker.cnb.cool/mznjs/docker/github-sync # #tencentcom/git-sync
+          image: docker.cnb.cool/mznjs/docker/github-sync
           settings:
-            target_url: https://github.com/supbose/vitesse-nuxt-tauri.git
+            target_url: https://github.com/supbose/tauri-actions.git
             auth_type: https
             username: ${GITHUB_USERNAME}
             password: ${GITHUB_ACCESS_TOKEN}
