@@ -321,6 +321,8 @@ async function getReleaseAssetContent(options, asset) {
 async function updateAndUploadLatestJson(release, targetVersion) {
     try {
         const latestJsonAsset = release.assets.find(asset => asset.name === 'latest.json');
+        let outputContent;
+        const outputDir = 'updateoutput';
         if (!latestJsonAsset) {
             console.log('latest.json asset not found, creating a new one');
             const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
@@ -374,40 +376,33 @@ async function updateAndUploadLatestJson(release, targetVersion) {
                 pub_date: new Date().toISOString(),
                 platforms: platforms
             };
-            const outputDir = 'updateoutput';
-            if (!createDirectory(outputDir)) {
-                throw new Error(`Failed to create output directory: ${outputDir}`);
+            outputContent = JSON.stringify(defaultLatestJson, null, 2);
+        }
+        else {
+            const repoInfo = getRepositoryInfo();
+            const baseUrl = latestJsonAsset.browser_download_url.split('/').slice(0, -1).join('/');
+            console.log('Base URL:', baseUrl);
+            const contentStr = await getReleaseAssetContent(repoInfo, latestJsonAsset);
+            let contentJson;
+            try {
+                contentJson = JSON.parse(contentStr);
             }
-            const outputPath = path.join(outputDir, 'latest.json');
-            fs.writeFileSync(outputPath, JSON.stringify(defaultLatestJson, null, 2));
-            console.log(`Created default latest.json at: ${outputPath}`);
-            core.setOutput('latest-json-path', outputDir);
-            return;
+            catch (parseError) {
+                console.error('Failed to parse latest.json:', parseError);
+                throw parseError;
+            }
+            const version = contentJson.version || targetVersion;
+            console.log('Version:', version);
+            const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
+            const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
+            outputContent = contentStr.replace(new RegExp(baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `${normalizedCdnBase}download/v${version}`);
         }
-        const repoInfo = getRepositoryInfo();
-        const baseUrl = latestJsonAsset.browser_download_url.split('/').slice(0, -1).join('/');
-        console.log('Base URL:', baseUrl);
-        const contentStr = await getReleaseAssetContent(repoInfo, latestJsonAsset);
-        let contentJson;
-        try {
-            contentJson = JSON.parse(contentStr);
-        }
-        catch (parseError) {
-            console.error('Failed to parse latest.json:', parseError);
-            throw parseError;
-        }
-        const version = contentJson.version || targetVersion;
-        console.log('Version:', version);
-        const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
-        const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
-        const updatedContent = contentStr.replace(new RegExp(baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `${normalizedCdnBase}download/v${version}`);
-        const outputDir = 'updateoutput';
         if (!createDirectory(outputDir)) {
             throw new Error(`Failed to create output directory: ${outputDir}`);
         }
         const outputPath = path.join(outputDir, 'latest.json');
-        fs.writeFileSync(outputPath, Buffer.from(updatedContent, 'utf-8'));
-        console.log(`Updated latest.json written to: ${outputDir}`);
+        fs.writeFileSync(outputPath, Buffer.from(outputContent, 'utf-8'));
+        console.log(`Latest.json written to: ${outputPath}`);
         core.setOutput('latest-json-path', outputDir);
         const ftpHost = core.getInput('ftp-host');
         const ftpUsername = core.getInput('ftp-username');

@@ -328,34 +328,88 @@ async function getReleaseAssetContent(options, asset) {
 async function updateAndUploadLatestJson(release, targetVersion) {
     try {
         const latestJsonAsset = release.assets.find(asset => asset.name === 'latest.json');
-        if (!latestJsonAsset) {
-            console.log('latest.json asset not found');
-            return;
-        }
-        const repoInfo = getRepositoryInfo();
-        const baseUrl = latestJsonAsset.browser_download_url.split('/').slice(0, -1).join('/');
-        console.log('Base URL:', baseUrl);
-        const contentStr = await getReleaseAssetContent(repoInfo, latestJsonAsset);
-        let contentJson;
-        try {
-            contentJson = JSON.parse(contentStr);
-        }
-        catch (parseError) {
-            console.error('Failed to parse latest.json:', parseError);
-            throw parseError;
-        }
-        const version = contentJson.version || targetVersion;
-        console.log('Version:', version);
-        const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
-        const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
-        const updatedContent = contentStr.replace(new RegExp(baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `${normalizedCdnBase}download/v${version}`);
+        let outputContent;
         const outputDir = 'updateoutput';
+        if (!latestJsonAsset) {
+            console.log('latest.json asset not found, creating a new one');
+            const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
+            const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
+            const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
+            const platforms = {};
+            for (const asset of release.assets) {
+                if (asset.name === 'latest.json')
+                    continue;
+                let platformKey = '';
+                if (asset.name.includes('x64') || asset.name.includes('x86_64')) {
+                    if (asset.name.includes('.msi')) {
+                        platformKey = 'windows-x86_64-msi';
+                    }
+                    else if (asset.name.includes('-setup.exe') || asset.name.includes('_setup.exe')) {
+                        platformKey = 'windows-x86_64-nsis';
+                    }
+                    else if (asset.name.includes('.zip') || asset.name.includes('.exe')) {
+                        platformKey = 'windows-x86_64';
+                    }
+                }
+                else if (asset.name.includes('arm64') && asset.name.includes('.msi')) {
+                    platformKey = 'windows-aarch64-msi';
+                }
+                else if (asset.name.includes('darwin') || asset.name.includes('mac')) {
+                    if (asset.name.includes('arm64')) {
+                        platformKey = 'darwin-aarch64';
+                    }
+                    else {
+                        platformKey = 'darwin-x86_64';
+                    }
+                }
+                else if (asset.name.includes('linux')) {
+                    if (asset.name.includes('amd64') || asset.name.includes('x86_64')) {
+                        platformKey = 'linux-x86_64';
+                    }
+                    else if (asset.name.includes('arm64')) {
+                        platformKey = 'linux-aarch64';
+                    }
+                }
+                if (platformKey) {
+                    platforms[platformKey] = {
+                        url: `${downloadUrl}/${asset.name}`,
+                        signature: ''
+                    };
+                }
+            }
+            const defaultLatestJson = {
+                version: targetVersion,
+                notes: '',
+                pub_date: new Date().toISOString(),
+                platforms: platforms
+            };
+            outputContent = JSON.stringify(defaultLatestJson, null, 2);
+        }
+        else {
+            const repoInfo = getRepositoryInfo();
+            const baseUrl = latestJsonAsset.browser_download_url.split('/').slice(0, -1).join('/');
+            console.log('Base URL:', baseUrl);
+            const contentStr = await getReleaseAssetContent(repoInfo, latestJsonAsset);
+            let contentJson;
+            try {
+                contentJson = JSON.parse(contentStr);
+            }
+            catch (parseError) {
+                console.error('Failed to parse latest.json:', parseError);
+                throw parseError;
+            }
+            const version = contentJson.version || targetVersion;
+            console.log('Version:', version);
+            const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
+            const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
+            outputContent = contentStr.replace(new RegExp(baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `${normalizedCdnBase}download/v${version}`);
+        }
         if (!createDirectory(outputDir)) {
             throw new Error(`Failed to create output directory: ${outputDir}`);
         }
         const outputPath = path.join(outputDir, 'latest.json');
-        fs.writeFileSync(outputPath, Buffer.from(updatedContent, 'utf-8'));
-        console.log(`Updated latest.json written to: ${outputDir}`);
+        fs.writeFileSync(outputPath, Buffer.from(outputContent, 'utf-8'));
+        console.log(`Latest.json written to: ${outputPath}`);
         core.setOutput('latest-json-path', outputDir);
         const ftpHost = core.getInput('ftp-host');
         const ftpUsername = core.getInput('ftp-username');
