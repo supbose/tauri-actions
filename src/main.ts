@@ -425,7 +425,7 @@ async function updateAndUploadLatestJson(release: Release, targetVersion: string
       const platforms: { [key: string]: { url: string; signature: string } } = {};
       
       for (const asset of release.assets) {
-        if (asset.name === 'latest.json') continue;
+        if (asset.name === 'latest.json' || asset.name.endsWith('.sig')) continue;
         
         let platformKey = '';
         

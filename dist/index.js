@@ -337,7 +337,7 @@ async function updateAndUploadLatestJson(release, targetVersion) {
             const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
             const platforms = {};
             for (const asset of release.assets) {
-                if (asset.name === 'latest.json')
+                if (asset.name === 'latest.json' || asset.name.endsWith('.sig'))
                     continue;
                 let platformKey = '';
                 if (asset.name.includes('x64') || asset.name.includes('x86_64')) {
