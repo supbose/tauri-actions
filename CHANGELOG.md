@@ -1,4 +1,16 @@
 
+## v0.0.4
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.3...v0.0.4)
+
+### 🚀 特性
+
+- 新增当找不到latest.json时自动生成更新配置的逻辑 (71b2c3f)
+
+### 💅 重构
+
+- **update-and-upload-latest-json:** 重构代码逻辑，统一输出内容处理流程 (fb1d919)
+
 ## v0.0.3
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.2...v0.0.3)
