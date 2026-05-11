@@ -1,4 +1,12 @@
 
+## v0.0.5
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.4...v0.0.5)
+
+### 🩹 修复
+
+- 跳过处理latest.json和.sig后缀的签名文件 (c943b7a)
+
 ## v0.0.4
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.3...v0.0.4)
