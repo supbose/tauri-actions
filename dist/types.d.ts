@@ -9,6 +9,7 @@ export interface ActionInputs {
     ftpServerDir: string;
     uploadLatest: 'disabled' | 'ci' | 'use';
     githubToken: string;
+    cdnBaseUrl: string;
 }
 export interface FtpConfig {
     host: string;

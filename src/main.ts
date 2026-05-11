@@ -441,9 +441,11 @@ async function updateAndUploadLatestJson(release: Release, targetVersion: string
     // console.log('Content JSON:', contentJson);
 
     // Replace base URL with CDN URL
+    const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
+    const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
     const updatedContent = contentStr.replace(
       new RegExp(baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-      `https://cdn.ali.yiruan.wang/download/v${version}`
+      `${normalizedCdnBase}download/v${version}`
     );
 
 
@@ -532,7 +534,8 @@ async function run(): Promise<void> {
       ftpPassword: core.getInput('ftp-password'),
       ftpServerDir: core.getInput('ftp-server-dir'),
       uploadLatest: core.getInput('upload-latest') as 'disabled' | 'ci' | 'use',
-      githubToken: core.getInput('github-token')
+      githubToken: core.getInput('github-token'),
+      cdnBaseUrl: core.getInput('cdn-base-url')
     };
 
     // Validate inputs

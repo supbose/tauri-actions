@@ -14,6 +14,7 @@ export interface ActionInputs {
   ftpServerDir: string;
   uploadLatest: 'disabled' | 'ci' | 'use';
   githubToken: string;
+  cdnBaseUrl: string;
 }
 
 // FTP configuration

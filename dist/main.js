@@ -339,7 +339,9 @@ async function updateAndUploadLatestJson(release, targetVersion) {
         }
         const version = contentJson.version || targetVersion;
         console.log('Version:', version);
-        const updatedContent = contentStr.replace(new RegExp(baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `https://cdn.ali.yiruan.wang/download/v${version}`);
+        const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
+        const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
+        const updatedContent = contentStr.replace(new RegExp(baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `${normalizedCdnBase}download/v${version}`);
         const outputDir = 'updateoutput';
         if (!createDirectory(outputDir)) {
             throw new Error(`Failed to create output directory: ${outputDir}`);
@@ -404,7 +406,8 @@ async function run() {
             ftpPassword: core.getInput('ftp-password'),
             ftpServerDir: core.getInput('ftp-server-dir'),
             uploadLatest: core.getInput('upload-latest'),
-            githubToken: core.getInput('github-token')
+            githubToken: core.getInput('github-token'),
+            cdnBaseUrl: core.getInput('cdn-base-url')
         };
         const validation = validateInputs(inputs);
         if (!validation.valid) {

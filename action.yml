@@ -38,6 +38,10 @@ inputs:
     description: 'GitHub token for FTP upload'
     required: false
     default: ''
+  cdn-base-url:
+    description: 'CDN base URL for download links (e.g., https://cdn.example.com/)'
+    required: false
+    default: 'https://cdn.ali.yiruan.wang/'
 
 
 outputs:
