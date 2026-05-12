@@ -473,7 +473,9 @@ async function updateAndUploadLatestJson(release, targetVersion, localUploadDir)
                 serverDir: '/updater/'
             });
             if (result.success) {
+                const latestJsonUrl = `${normalizedCdnBase}updater/latest.json`;
                 console.log('🚀 Latest.json uploaded successfully!');
+                console.log(`📦 Latest.json URL: ${latestJsonUrl}`);
             }
             else {
                 console.error('Failed to upload latest.json:', result.message);
