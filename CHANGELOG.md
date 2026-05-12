@@ -1,4 +1,12 @@
 
+## v0.0.8
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.7...v0.0.8)
+
+### 💅 重构
+
+- 重构代码，提取公共方法减少重复代码 (3151492)
+
 ## v0.0.7
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.6...v0.0.7)
