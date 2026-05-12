@@ -1,4 +1,22 @@
 
+## v0.0.15
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.14...v0.0.15)
+
+### 🚀 特性
+
+- **copyFiles:** Add version filter parameter for file copying (6d3e8d0)
+
+### 🩹 修复
+
+- **main:** 移除重复的windows-x86_64平台标识推送 (8edf666)
+- **main:** 移除重复的windows-aarch64构建key (6a4ce97)
+
+### 📦 打包
+
+- 切换到esbuild构建并清理旧的dist产物 (f014e95)
+- 生成项目发布构建产物 (784e37e)
+
 ## v0.0.14
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.13...v0.0.14)
