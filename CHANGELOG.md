@@ -1,4 +1,12 @@
 
+## v0.0.11
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.10...v0.0.11)
+
+### 🚀 特性
+
+- 添加上传latest.json后的url打印日志 (785f1dd)
+
 ## v0.0.10
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.9...v0.0.10)
