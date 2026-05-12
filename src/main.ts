@@ -413,8 +413,7 @@ function getPlatformKeys(fileName: string): string[] {
   
   if (fileName.includes('x64') || fileName.includes('x86_64')) {
     if (fileName.includes('.msi')) {
-      keys.push('windows-x86_64-msi');
-      keys.push('windows-x86_64');
+      keys.push('windows-x86_64-msi');     
     } else if (fileName.includes('-setup.exe') || fileName.includes('_setup.exe')) {
       keys.push('windows-x86_64-nsis');
       keys.push('windows-x86_64');
