@@ -1,9 +1,7 @@
 import 'dotenv/config';
-import { FtpConfig, DeploymentResult, ProcessResult } from './types';
-declare function getAllFiles(dirPath: string, arrayOfFiles?: string[]): string[];
-declare function getVersionFromConfig(configFile: string): string;
-declare function copyFiles(sourceDir: string, targetDir: string, version?: string): ProcessResult;
-declare function uploadToFTP(localDir: string, ftpConfig: FtpConfig): Promise<DeploymentResult>;
+import { getVersionFromConfig } from './utils/version';
+import { copyFiles, getAllFiles } from './utils/files';
+import { uploadToFTP } from './utils/ftp';
 declare function run(): Promise<void>;
 export { run, getAllFiles, uploadToFTP, copyFiles, getVersionFromConfig };
 //# sourceMappingURL=main.d.ts.map
