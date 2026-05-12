@@ -1,4 +1,4 @@
-import { Release, ReleaseAsset } from '../types';
+import { Release, ReleaseAsset, FtpConfig } from '../types';
 export declare function getSignatureForAsset(repoInfo: any, assetName: string, assets: ReleaseAsset[]): Promise<string>;
 export declare function buildPlatformsFromAssets(release: Release, downloadUrl: string, localUploadDir?: string, repoInfo?: any): Promise<{
     [key: string]: {
@@ -6,5 +6,5 @@ export declare function buildPlatformsFromAssets(release: Release, downloadUrl: 
         signature: string;
     };
 }>;
-export declare function updateAndUploadLatestJson(release: Release, targetVersion: string, localUploadDir: string | undefined, repoInfo: any, cdnBase: string): Promise<void>;
+export declare function updateAndUploadLatestJson(release: Release, targetVersion: string, localUploadDir: string | undefined, repoInfo: any, cdnBase: string, ftpConfig: FtpConfig | undefined): Promise<void>;
 //# sourceMappingURL=latest.d.ts.map

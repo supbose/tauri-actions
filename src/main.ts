@@ -7,7 +7,7 @@ import * as core from '@actions/core';
 import 'dotenv/config';
 
 // Import type definitions
-import { ActionInputs } from './types';
+import { ActionInputs, FtpConfig } from './types';
 
 // Import utility modules
 import { initializeToken, getRepositoryInfo, getLatestRelease } from './utils/github';
@@ -20,8 +20,9 @@ import { updateAndUploadLatestJson } from './utils/latest';
  * Upload latest version files
  * @param targetVersion - Version to upload
  * @param localUploadDir - Local directory containing uploaded files
+ * @param ftpConfig - FTP configuration for uploading latest.json
  */
-async function uploadLatestVersion(targetVersion: string, localUploadDir?: string): Promise<void> {
+async function uploadLatestVersion(targetVersion: string, localUploadDir?: string, ftpConfig?: FtpConfig): Promise<void> {
   try {
     const repoInfo = getRepositoryInfo();
     const release = await getLatestRelease(repoInfo);
@@ -32,7 +33,7 @@ async function uploadLatestVersion(targetVersion: string, localUploadDir?: strin
     }
 
     const cdnBaseUrl = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
-    await updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBaseUrl);
+    await updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBaseUrl, ftpConfig);
   } catch (error) {
     console.error('Error uploading latest version:', error);
     throw error;
@@ -135,7 +136,15 @@ async function run(): Promise<void> {
       case 'use':
         console.log("FTP upload enabled with built-in functionality...");
 
-        // If latest upload is enabled, generate latest.json first
+        // Create FTP config for latest.json upload
+        const ftpConfig: FtpConfig = {
+          host: inputs.ftpHost,
+          user: inputs.ftpUsername,
+          password: inputs.ftpPassword,
+          serverDir: formatPath(inputs.ftpServerDir)
+        };
+        
+        // If latest upload is enabled, generate latest.json first and upload to updater directory
         if (inputs.uploadLatest === 'use' && inputs.githubToken) {
           console.log(`✅ --------------------------------`);
           console.log(`✅ Generating latest.json before FTP upload`);
@@ -143,7 +152,7 @@ async function run(): Promise<void> {
           console.log(`✅ --------------------------------`);
           
           try {
-            await uploadLatestVersion(version, targetDir);
+            await uploadLatestVersion(version, targetDir, ftpConfig);
             core.setOutput('latest-upload-success', 'true');
           } catch (error) {
             core.setOutput('latest-upload-success', 'false');
@@ -152,10 +161,8 @@ async function run(): Promise<void> {
         }
         
         const uploadResult = await uploadToFTP(targetDir, {
-          host: inputs.ftpHost,
-          user: inputs.ftpUsername,
-          password: inputs.ftpPassword,
-          serverDir: formatPath(inputs.ftpServerDir) + `v${version}/` || `download/v${version}/`
+          ...ftpConfig,
+          serverDir: ftpConfig.serverDir + `v${version}/` || `download/v${version}/`
         });
 
         ftpUploadSuccess = uploadResult.success;

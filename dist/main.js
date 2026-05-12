@@ -5,7 +5,7 @@ import { getVersionFromConfig, validateInputs } from './utils/version';
 import { copyFiles, createDirectory, verifyFiles, formatPath, getAllFiles } from './utils/files';
 import { uploadToFTP } from './utils/ftp';
 import { updateAndUploadLatestJson } from './utils/latest';
-async function uploadLatestVersion(targetVersion, localUploadDir) {
+async function uploadLatestVersion(targetVersion, localUploadDir, ftpConfig) {
     try {
         const repoInfo = getRepositoryInfo();
         const release = await getLatestRelease(repoInfo);
@@ -14,7 +14,7 @@ async function uploadLatestVersion(targetVersion, localUploadDir) {
             return;
         }
         const cdnBaseUrl = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
-        await updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBaseUrl);
+        await updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBaseUrl, ftpConfig);
     }
     catch (error) {
         console.error('Error uploading latest version:', error);
@@ -91,13 +91,19 @@ async function run() {
                 break;
             case 'use':
                 console.log("FTP upload enabled with built-in functionality...");
+                const ftpConfig = {
+                    host: inputs.ftpHost,
+                    user: inputs.ftpUsername,
+                    password: inputs.ftpPassword,
+                    serverDir: formatPath(inputs.ftpServerDir)
+                };
                 if (inputs.uploadLatest === 'use' && inputs.githubToken) {
                     console.log(`✅ --------------------------------`);
                     console.log(`✅ Generating latest.json before FTP upload`);
                     console.log(`✅ GitHub Token: ${inputs.githubToken}`);
                     console.log(`✅ --------------------------------`);
                     try {
-                        await uploadLatestVersion(version, targetDir);
+                        await uploadLatestVersion(version, targetDir, ftpConfig);
                         core.setOutput('latest-upload-success', 'true');
                     }
                     catch (error) {
@@ -106,10 +112,8 @@ async function run() {
                     }
                 }
                 const uploadResult = await uploadToFTP(targetDir, {
-                    host: inputs.ftpHost,
-                    user: inputs.ftpUsername,
-                    password: inputs.ftpPassword,
-                    serverDir: formatPath(inputs.ftpServerDir) + `v${version}/` || `download/v${version}/`
+                    ...ftpConfig,
+                    serverDir: ftpConfig.serverDir + `v${version}/` || `download/v${version}/`
                 });
                 ftpUploadSuccess = uploadResult.success;
                 core.setOutput('ftp-upload-success', ftpUploadSuccess.toString());

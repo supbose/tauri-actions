@@ -3,6 +3,7 @@ import * as path from 'path';
 import { getPlatformKeys } from './platform';
 import { getReleaseAssetContent, getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
+import { uploadToFTP } from './ftp';
 export async function getSignatureForAsset(repoInfo, assetName, assets) {
     const sigAsset = assets.find(a => a.name === assetName + '.sig');
     if (sigAsset) {
@@ -67,7 +68,7 @@ export async function buildPlatformsFromAssets(release, downloadUrl, localUpload
     }
     return platforms;
 }
-export async function updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBase) {
+export async function updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBase, ftpConfig) {
     try {
         console.log('Updating latest.json...');
         const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
@@ -101,10 +102,26 @@ export async function updateAndUploadLatestJson(release, targetVersion, localUpl
         const latestJsonPath = path.join(outputDir, 'latest.json');
         fs.writeFileSync(latestJsonPath, outputContent, 'utf-8');
         console.log(`Latest.json written to: ${latestJsonPath}`);
-        if (localUploadDir && fs.existsSync(localUploadDir)) {
-            const uploadPath = path.join(localUploadDir, 'latest.json');
-            fs.copyFileSync(latestJsonPath, uploadPath);
-            console.log(`Latest.json copied to upload directory: ${uploadPath}`);
+        if (ftpConfig) {
+            console.log(`Uploading latest.json to FTP server: ${ftpConfig.host}`);
+            console.log(`Server directory: ${ftpConfig.serverDir}updater/`);
+            const updaterFtpConfig = {
+                ...ftpConfig,
+                serverDir: (ftpConfig.serverDir || '') + 'updater/'
+            };
+            const updaterDir = './output/updater';
+            if (!fs.existsSync(updaterDir)) {
+                fs.mkdirSync(updaterDir, { recursive: true });
+            }
+            const updaterLatestJsonPath = path.join(updaterDir, 'latest.json');
+            fs.copyFileSync(latestJsonPath, updaterLatestJsonPath);
+            const uploadResult = await uploadToFTP(updaterDir, updaterFtpConfig);
+            if (uploadResult.success) {
+                console.log('✅ latest.json uploaded to updater directory successfully');
+            }
+            else {
+                console.error('❌ Failed to upload latest.json:', uploadResult.message);
+            }
         }
         const latestJsonUrl = `${normalizedCdnBase}updater/latest.json`;
         console.log('🚀 Latest.json URL:', latestJsonUrl);
