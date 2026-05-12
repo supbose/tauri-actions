@@ -403,11 +403,65 @@ async function getReleaseAssetContent(options: RepositoryInfo, asset: ReleaseAss
 }
 
 /**
+ * Get platform key from file name
+ * @param fileName - File name to parse
+ * @returns Platform key string
+ */
+function getPlatformKey(fileName: string): string {
+  if (fileName.includes('x64') || fileName.includes('x86_64')) {
+    if (fileName.includes('.msi')) {
+      return 'windows-x86_64-msi';
+    } else if (fileName.includes('-setup.exe') || fileName.includes('_setup.exe')) {
+      return 'windows-x86_64-nsis';
+    } else if (fileName.includes('.zip') || fileName.includes('.exe')) {
+      return 'windows-x86_64';
+    }
+  } else if (fileName.includes('arm64') && fileName.includes('.msi')) {
+    return 'windows-aarch64-msi';
+  } else if (fileName.includes('darwin') || fileName.includes('mac')) {
+    if (fileName.includes('arm64')) {
+      return 'darwin-aarch64';
+    } else {
+      return 'darwin-x86_64';
+    }
+  } else if (fileName.includes('linux')) {
+    if (fileName.includes('amd64') || fileName.includes('x86_64')) {
+      return 'linux-x86_64';
+    } else if (fileName.includes('arm64')) {
+      return 'linux-aarch64';
+    }
+  }
+  return '';
+}
+
+/**
+ * Get signature content for an asset from release assets
+ * @param repoInfo - Repository info
+ * @param assetName - Asset file name
+ * @param assets - Release assets array
+ * @returns Signature content or empty string
+ */
+async function getSignatureForAsset(repoInfo: RepositoryInfo, assetName: string, assets: ReleaseAsset[]): Promise<string> {
+  const sigAsset = assets.find(a => a.name === assetName + '.sig');
+  if (sigAsset) {
+    try {
+      const signatureContent = await getReleaseAssetContent(repoInfo, sigAsset);
+      console.log(`Loaded signature for ${assetName}: ${signatureContent.substring(0, 50)}...`);
+      return signatureContent.trim();
+    } catch (error) {
+      console.error(`Failed to load signature for ${assetName}.sig:`, error);
+    }
+  }
+  return '';
+}
+
+/**
  * Update latest.json with CDN URL and upload to FTP
  * @param release - Release data
  * @param targetVersion - Target version
+ * @param localUploadDir - Local directory containing uploaded files
  */
-async function updateAndUploadLatestJson(release: Release, targetVersion: string): Promise<void> {
+async function updateAndUploadLatestJson(release: Release, targetVersion: string, localUploadDir?: string): Promise<void> {
   try {
     const latestJsonAsset = release.assets.find(asset => asset.name === 'latest.json');
     
@@ -422,104 +476,54 @@ async function updateAndUploadLatestJson(release: Release, targetVersion: string
       
       const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
       
-      const platforms: { [key: string]: { url: string; signature: string; assetName: string } } = {};
+      const platforms: { [key: string]: { url: string; signature: string } } = {};
+      
+      let hasOnlineAssets = false;
+      const repoInfo = getRepositoryInfo();
       
       for (const asset of release.assets) {
-        if (asset.name === 'latest.json') continue;
-        if (asset.name.endsWith('.sig')) continue;
+        if (asset.name === 'latest.json' || asset.name.endsWith('.sig')) continue;
+        hasOnlineAssets = true;
         
-        let platformKey = '';
-        
-        if (asset.name.includes('x64') || asset.name.includes('x86_64')) {
-          if (asset.name.includes('.msi')) {
-            platformKey = 'windows-x86_64-msi';
-          } else if (asset.name.includes('-setup.exe') || asset.name.includes('_setup.exe')) {
-            platformKey = 'windows-x86_64-nsis';
-          } else if (asset.name.includes('.zip') || asset.name.includes('.exe')) {
-            platformKey = 'windows-x86_64';
-          }
-        } else if (asset.name.includes('arm64') && asset.name.includes('.msi')) {
-          platformKey = 'windows-aarch64-msi';
-        } else if (asset.name.includes('darwin') || asset.name.includes('mac')) {
-          if (asset.name.includes('arm64')) {
-            platformKey = 'darwin-aarch64';
-          } else {
-            platformKey = 'darwin-x86_64';
-          }
-        } else if (asset.name.includes('linux')) {
-          if (asset.name.includes('amd64') || asset.name.includes('x86_64')) {
-            platformKey = 'linux-x86_64';
-          } else if (asset.name.includes('arm64')) {
-            platformKey = 'linux-aarch64';
-          }
-        }
-        
+        const platformKey = getPlatformKey(asset.name);
         if (platformKey) {
+          const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
           platforms[platformKey] = {
             url: `${downloadUrl}/${asset.name}`,
-            signature: '',
-            assetName: asset.name
+            signature: signature
           };
         }
       }
       
-      const repoInfo = getRepositoryInfo();
-      
-      for (const asset of release.assets) {
-        if (!asset.name.endsWith('.sig')) continue;
+      if (!hasOnlineAssets && localUploadDir && fs.existsSync(localUploadDir)) {
+        console.log('No online assets found, using local upload directory:', localUploadDir);
         
-        const assetBaseName = asset.name.replace(/\.sig$/, '');
-        
-        let platformKey = '';
-        
-        if (assetBaseName.includes('x64') || assetBaseName.includes('x86_64')) {
-          if (assetBaseName.includes('.msi')) {
-            platformKey = 'windows-x86_64-msi';
-          } else if (assetBaseName.includes('-setup.exe') || assetBaseName.includes('_setup.exe')) {
-            platformKey = 'windows-x86_64-nsis';
-          } else if (assetBaseName.includes('.zip') || assetBaseName.includes('.exe')) {
-            platformKey = 'windows-x86_64';
-          }
-        } else if (assetBaseName.includes('arm64') && assetBaseName.includes('.msi')) {
-          platformKey = 'windows-aarch64-msi';
-        } else if (assetBaseName.includes('darwin') || assetBaseName.includes('mac')) {
-          if (assetBaseName.includes('arm64')) {
-            platformKey = 'darwin-aarch64';
-          } else {
-            platformKey = 'darwin-x86_64';
-          }
-        } else if (assetBaseName.includes('linux')) {
-          if (assetBaseName.includes('amd64') || assetBaseName.includes('x86_64')) {
-            platformKey = 'linux-x86_64';
-          } else if (assetBaseName.includes('arm64')) {
-            platformKey = 'linux-aarch64';
+        const localFiles = getAllFiles(localUploadDir);
+        for (const filePath of localFiles) {
+          const fileName = path.basename(filePath);
+          if (fileName === 'latest.json' || fileName.endsWith('.sig')) continue;
+          
+          const platformKey = getPlatformKey(fileName);
+          if (platformKey) {
+            const sigFilePath = path.join(localUploadDir, fileName + '.sig');
+            const signature = fs.existsSync(sigFilePath) 
+              ? fs.readFileSync(sigFilePath, 'utf-8').trim() 
+              : '';
+            
+            platforms[platformKey] = {
+              url: `${downloadUrl}/${fileName}`,
+              signature: signature
+            };
+            console.log(`Added local file: ${fileName} -> ${platformKey}`);
           }
         }
-        
-        if (platformKey && platforms[platformKey]) {
-          try {
-            const signatureContent = await getReleaseAssetContent(repoInfo, asset);
-            platforms[platformKey].signature = signatureContent.trim();
-            console.log(`Loaded signature for ${platformKey}: ${signatureContent.substring(0, 50)}...`);
-          } catch (error) {
-            console.error(`Failed to load signature for ${asset.name}:`, error);
-          }
-        }
-      }
-      
-      const finalPlatforms: { [key: string]: { url: string; signature: string } } = {};
-      for (const [key, value] of Object.entries(platforms)) {
-        finalPlatforms[key] = {
-          url: value.url,
-          signature: value.signature
-        };
       }
       
       const defaultLatestJson: LatestJsonContent = {
         version: targetVersion,
         notes: '',
         pub_date: new Date().toISOString(),
-        platforms: finalPlatforms
+        platforms: platforms
       };
       
       outputContent = JSON.stringify(defaultLatestJson, null, 2);
@@ -587,8 +591,9 @@ async function updateAndUploadLatestJson(release: Release, targetVersion: string
 /**
  * Upload latest version files
  * @param targetVersion - Version to upload
+ * @param localUploadDir - Local directory containing uploaded files
  */
-async function uploadLatestVersion(targetVersion: string): Promise<void> {
+async function uploadLatestVersion(targetVersion: string, localUploadDir?: string): Promise<void> {
   try {
     if (!GITHUB_TOKEN) {
       console.log("GITHUB_TOKEN is required for uploading latest version");
@@ -605,7 +610,7 @@ async function uploadLatestVersion(targetVersion: string): Promise<void> {
       return;
     }
 
-    await updateAndUploadLatestJson(release, targetVersion);
+    await updateAndUploadLatestJson(release, targetVersion, localUploadDir);
   } catch (error) {
     console.error('Error uploading latest version:', error);
     throw error;
@@ -725,7 +730,7 @@ async function run(): Promise<void> {
           console.log(`✅ --------------------------------`);
           
           try {
-            await uploadLatestVersion(version);
+            await uploadLatestVersion(version, targetDir);
             core.setOutput('latest-upload-success', 'true');
           } catch (error) {
             core.setOutput('latest-upload-success', 'false');
