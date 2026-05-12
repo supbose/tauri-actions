@@ -104,10 +104,10 @@ export async function updateAndUploadLatestJson(release, targetVersion, localUpl
         console.log(`Latest.json written to: ${latestJsonPath}`);
         if (ftpConfig) {
             console.log(`Uploading latest.json to FTP server: ${ftpConfig.host}`);
-            console.log(`Server directory: ${ftpConfig.serverDir}updater/`);
+            console.log(`Server directory: updater/`);
             const updaterFtpConfig = {
                 ...ftpConfig,
-                serverDir: (ftpConfig.serverDir || '') + 'updater/'
+                serverDir: 'updater/'
             };
             const updaterDir = './output/updater';
             if (!fs.existsSync(updaterDir)) {

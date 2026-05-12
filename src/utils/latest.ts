@@ -168,11 +168,11 @@ export async function updateAndUploadLatestJson(
     // Upload latest.json to updater directory via FTP
     if (ftpConfig) {
       console.log(`Uploading latest.json to FTP server: ${ftpConfig.host}`);
-      console.log(`Server directory: ${ftpConfig.serverDir}updater/`);
+      console.log(`Server directory: updater/`);
       
       const updaterFtpConfig: FtpConfig = {
         ...ftpConfig,
-        serverDir: (ftpConfig.serverDir || '') + 'updater/'
+        serverDir: 'updater/'
       };
       
       // Create a temporary directory just for latest.json
