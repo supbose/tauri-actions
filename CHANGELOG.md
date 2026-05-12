@@ -1,4 +1,12 @@
 
+## v0.0.6
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.5...v0.0.6)
+
+### 🚀 特性
+
+- 新增签名加载逻辑，完善版本发布JSON生成 (dad9b71)
+
 ## v0.0.5
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.4...v0.0.5)
