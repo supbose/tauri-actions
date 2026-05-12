@@ -103,19 +103,28 @@ function createDirectory(dirPath) {
         return false;
     }
 }
-function copyFiles(sourceDir, targetDir) {
+function copyFiles(sourceDir, targetDir, version) {
     try {
         if (!fs.existsSync(sourceDir)) {
             throw new Error(`Source directory does not exist: ${sourceDir}`);
         }
         console.log(`Source directory exists: ${sourceDir}`);
         console.log(`Copying files from ${sourceDir} to ${targetDir} (flat structure)`);
+        if (version) {
+            console.log(`Filtering files by version: ${version}`);
+        }
         const files = getAllFiles(sourceDir);
         let fileCount = 0;
         let errorCount = 0;
+        let skippedCount = 0;
         for (const file of files) {
             try {
                 const fileName = path.basename(file);
+                if (version && !fileName.includes(version)) {
+                    console.log(`Skipped (version mismatch): ${fileName}`);
+                    skippedCount++;
+                    continue;
+                }
                 const targetPath = path.join(targetDir, fileName);
                 fs.copyFileSync(file, targetPath);
                 console.log(`Copied: ${fileName}`);
@@ -126,9 +135,12 @@ function copyFiles(sourceDir, targetDir) {
                 errorCount++;
             }
         }
-        console.log(`Copy completed! Files copied: ${fileCount}, Errors: ${errorCount}`);
+        console.log(`Copy completed! Files copied: ${fileCount}, Skipped: ${skippedCount}, Errors: ${errorCount}`);
         if (errorCount > 0) {
             console.log(`Warning: ${errorCount} file(s) failed to copy`);
+        }
+        if (skippedCount > 0) {
+            console.log(`Info: ${skippedCount} file(s) skipped due to version mismatch`);
         }
         return {
             success: errorCount === 0,
@@ -534,7 +546,7 @@ async function run() {
             return;
         }
         core.setOutput('target-dir', targetDir);
-        const copyResult = copyFiles(inputs.sourceDir, targetDir);
+        const copyResult = copyFiles(inputs.sourceDir, targetDir, version);
         if (!copyResult.success) {
             core.setFailed(`Failed to copy files`);
             return;
