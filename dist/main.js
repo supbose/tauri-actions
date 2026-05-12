@@ -330,7 +330,9 @@ async function updateAndUploadLatestJson(release, targetVersion) {
             const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
             const platforms = {};
             for (const asset of release.assets) {
-                if (asset.name === 'latest.json' || asset.name.endsWith('.sig'))
+                if (asset.name === 'latest.json')
+                    continue;
+                if (asset.name.endsWith('.sig'))
                     continue;
                 let platformKey = '';
                 if (asset.name.includes('x64') || asset.name.includes('x86_64')) {
@@ -366,15 +368,70 @@ async function updateAndUploadLatestJson(release, targetVersion) {
                 if (platformKey) {
                     platforms[platformKey] = {
                         url: `${downloadUrl}/${asset.name}`,
-                        signature: ''
+                        signature: '',
+                        assetName: asset.name
                     };
                 }
+            }
+            const repoInfo = getRepositoryInfo();
+            for (const asset of release.assets) {
+                if (!asset.name.endsWith('.sig'))
+                    continue;
+                const assetBaseName = asset.name.replace(/\.sig$/, '');
+                let platformKey = '';
+                if (assetBaseName.includes('x64') || assetBaseName.includes('x86_64')) {
+                    if (assetBaseName.includes('.msi')) {
+                        platformKey = 'windows-x86_64-msi';
+                    }
+                    else if (assetBaseName.includes('-setup.exe') || assetBaseName.includes('_setup.exe')) {
+                        platformKey = 'windows-x86_64-nsis';
+                    }
+                    else if (assetBaseName.includes('.zip') || assetBaseName.includes('.exe')) {
+                        platformKey = 'windows-x86_64';
+                    }
+                }
+                else if (assetBaseName.includes('arm64') && assetBaseName.includes('.msi')) {
+                    platformKey = 'windows-aarch64-msi';
+                }
+                else if (assetBaseName.includes('darwin') || assetBaseName.includes('mac')) {
+                    if (assetBaseName.includes('arm64')) {
+                        platformKey = 'darwin-aarch64';
+                    }
+                    else {
+                        platformKey = 'darwin-x86_64';
+                    }
+                }
+                else if (assetBaseName.includes('linux')) {
+                    if (assetBaseName.includes('amd64') || assetBaseName.includes('x86_64')) {
+                        platformKey = 'linux-x86_64';
+                    }
+                    else if (assetBaseName.includes('arm64')) {
+                        platformKey = 'linux-aarch64';
+                    }
+                }
+                if (platformKey && platforms[platformKey]) {
+                    try {
+                        const signatureContent = await getReleaseAssetContent(repoInfo, asset);
+                        platforms[platformKey].signature = signatureContent.trim();
+                        console.log(`Loaded signature for ${platformKey}: ${signatureContent.substring(0, 50)}...`);
+                    }
+                    catch (error) {
+                        console.error(`Failed to load signature for ${asset.name}:`, error);
+                    }
+                }
+            }
+            const finalPlatforms = {};
+            for (const [key, value] of Object.entries(platforms)) {
+                finalPlatforms[key] = {
+                    url: value.url,
+                    signature: value.signature
+                };
             }
             const defaultLatestJson = {
                 version: targetVersion,
                 notes: '',
                 pub_date: new Date().toISOString(),
-                platforms: platforms
+                platforms: finalPlatforms
             };
             outputContent = JSON.stringify(defaultLatestJson, null, 2);
         }
