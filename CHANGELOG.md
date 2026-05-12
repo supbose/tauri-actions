@@ -1,4 +1,12 @@
 
+## v0.0.7
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.6...v0.0.7)
+
+### 💅 重构
+
+- 重构平台匹配逻辑并添加本地文件支持 (5214524)
+
 ## v0.0.6
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.5...v0.0.6)
