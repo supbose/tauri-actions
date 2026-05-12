@@ -419,6 +419,26 @@ function getNormalizedCdnBaseUrl() {
     const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
     return cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
 }
+async function getGitCommitMessage() {
+    try {
+        const octokit = (0, github_1.getOctokit)(core.getInput('github-token'));
+        const { owner, repo } = getRepositoryInfo();
+        const commits = await octokit.rest.repos.listCommits({
+            owner: owner,
+            repo: repo,
+            per_page: 1
+        });
+        if (commits.data.length > 0) {
+            const commit = commits.data[0];
+            return commit.commit.message;
+        }
+        return '';
+    }
+    catch (error) {
+        console.log('Failed to get git commit message from GitHub API:', error);
+        return '';
+    }
+}
 async function updateAndUploadLatestJson(release, targetVersion, localUploadDir) {
     try {
         const latestJsonAsset = release.assets.find(asset => asset.name === 'latest.json');
@@ -431,7 +451,7 @@ async function updateAndUploadLatestJson(release, targetVersion, localUploadDir)
             const platforms = await buildPlatformsFromAssets(release, downloadUrl, localUploadDir);
             const defaultLatestJson = {
                 version: targetVersion,
-                notes: '',
+                notes: await getGitCommitMessage(),
                 pub_date: new Date().toISOString(),
                 platforms: platforms
             };

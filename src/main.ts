@@ -11,6 +11,7 @@ import 'dotenv/config';
 import { getOctokit, context } from "@actions/github";
 import { Octokit } from '@octokit/core';
 
+
 // Import type definitions
 import {
   ActionInputs,
@@ -524,6 +525,32 @@ function getNormalizedCdnBaseUrl(): string {
 }
 
 /**
+ * Get git commit message from GitHub API
+ * @returns Commit message string
+ */
+async function getGitCommitMessage(): Promise<string> {
+  try {
+    const octokit = getOctokit(core.getInput('github-token'));
+    const { owner, repo } = getRepositoryInfo();
+    
+    const commits = await octokit.rest.repos.listCommits({
+      owner: owner,
+      repo: repo,
+      per_page: 1
+    });
+    
+    if (commits.data.length > 0) {
+      const commit = commits.data[0];
+      return commit.commit.message;
+    }
+    return '';
+  } catch (error) {
+    console.log('Failed to get git commit message from GitHub API:', error);
+    return '';
+  }
+}
+
+/**
  * Update latest.json with CDN URL and upload to FTP
  * @param release - Release data
  * @param targetVersion - Target version
@@ -545,7 +572,7 @@ async function updateAndUploadLatestJson(release: Release, targetVersion: string
       
       const defaultLatestJson: LatestJsonContent = {
         version: targetVersion,
-        notes: '',
+        notes: await getGitCommitMessage(),
         pub_date: new Date().toISOString(),
         platforms: platforms
       };
