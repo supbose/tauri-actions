@@ -1,4 +1,26 @@
 
+## v0.0.14
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.13...v0.0.14)
+
+### 💅 重构
+
+- **platform:** 重构平台键获取逻辑，支持多键匹配 (fa1a002)
+- **platform:** Rewrite platform key parsing to support multiple keys per asset (e368e85)
+
+### 📦 打包
+
+- 调整项目构建配置与依赖 (8276944)
+
+### 🏡 框架
+
+- Update CHANGELOG.md (94b5b0f)
+- Release v0.0.13 (052c713)
+- Update CHANGELOG.md (522bae4)
+- Release v0.0.13 (c07eec1)
+- Update CHANGELOG.md (ec645d9)
+- Release v0.0.13 (c71d6fa)
+
 ## v0.0.13
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.12...v0.0.13)
