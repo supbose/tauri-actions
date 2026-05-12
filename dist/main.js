@@ -367,23 +367,9 @@ async function getSignatureForAsset(repoInfo, assetName, assets) {
 }
 async function buildPlatformsFromAssets(release, downloadUrl, localUploadDir) {
     const platforms = {};
-    let hasOnlineAssets = false;
     const repoInfo = getRepositoryInfo();
-    for (const asset of release.assets) {
-        if (asset.name === 'latest.json' || asset.name.endsWith('.sig'))
-            continue;
-        hasOnlineAssets = true;
-        const platformKey = getPlatformKey(asset.name);
-        if (platformKey) {
-            const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
-            platforms[platformKey] = {
-                url: `${downloadUrl}/${asset.name}`,
-                signature: signature
-            };
-        }
-    }
-    if (!hasOnlineAssets && localUploadDir && fs.existsSync(localUploadDir)) {
-        console.log('No online assets found, using local upload directory:', localUploadDir);
+    if (localUploadDir && fs.existsSync(localUploadDir)) {
+        console.log('Using local upload directory:', localUploadDir);
         const localFiles = getAllFiles(localUploadDir);
         for (const filePath of localFiles) {
             const fileName = path.basename(filePath);
@@ -401,6 +387,23 @@ async function buildPlatformsFromAssets(release, downloadUrl, localUploadDir) {
                 };
                 console.log(`Added local file: ${fileName} -> ${platformKey}`);
             }
+        }
+        if (Object.keys(platforms).length > 0) {
+            console.log(`Found ${Object.keys(platforms).length} platform(s) from local directory`);
+            return platforms;
+        }
+        console.log('No platforms found in local directory, falling back to online assets');
+    }
+    for (const asset of release.assets) {
+        if (asset.name === 'latest.json' || asset.name.endsWith('.sig'))
+            continue;
+        const platformKey = getPlatformKey(asset.name);
+        if (platformKey) {
+            const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
+            platforms[platformKey] = {
+                url: `${downloadUrl}/${asset.name}`,
+                signature: signature
+            };
         }
     }
     return platforms;
