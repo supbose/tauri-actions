@@ -1,4 +1,12 @@
 
+## v0.0.10
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.9...v0.0.10)
+
+### 💅 重构
+
+- 调整buildPlatformsFromAssets的资源加载逻辑 (2ab72ac)
+
 ## v0.0.9
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.8...v0.0.9)
