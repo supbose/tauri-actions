@@ -365,53 +365,60 @@ async function getSignatureForAsset(repoInfo, assetName, assets) {
     }
     return '';
 }
+async function buildPlatformsFromAssets(release, downloadUrl, localUploadDir) {
+    const platforms = {};
+    let hasOnlineAssets = false;
+    const repoInfo = getRepositoryInfo();
+    for (const asset of release.assets) {
+        if (asset.name === 'latest.json' || asset.name.endsWith('.sig'))
+            continue;
+        hasOnlineAssets = true;
+        const platformKey = getPlatformKey(asset.name);
+        if (platformKey) {
+            const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
+            platforms[platformKey] = {
+                url: `${downloadUrl}/${asset.name}`,
+                signature: signature
+            };
+        }
+    }
+    if (!hasOnlineAssets && localUploadDir && fs.existsSync(localUploadDir)) {
+        console.log('No online assets found, using local upload directory:', localUploadDir);
+        const localFiles = getAllFiles(localUploadDir);
+        for (const filePath of localFiles) {
+            const fileName = path.basename(filePath);
+            if (fileName === 'latest.json' || fileName.endsWith('.sig'))
+                continue;
+            const platformKey = getPlatformKey(fileName);
+            if (platformKey) {
+                const sigFilePath = path.join(localUploadDir, fileName + '.sig');
+                const signature = fs.existsSync(sigFilePath)
+                    ? fs.readFileSync(sigFilePath, 'utf-8').trim()
+                    : '';
+                platforms[platformKey] = {
+                    url: `${downloadUrl}/${fileName}`,
+                    signature: signature
+                };
+                console.log(`Added local file: ${fileName} -> ${platformKey}`);
+            }
+        }
+    }
+    return platforms;
+}
+function getNormalizedCdnBaseUrl() {
+    const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
+    return cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
+}
 async function updateAndUploadLatestJson(release, targetVersion, localUploadDir) {
     try {
         const latestJsonAsset = release.assets.find(asset => asset.name === 'latest.json');
+        const normalizedCdnBase = getNormalizedCdnBaseUrl();
         let outputContent;
         const outputDir = 'updateoutput';
         if (!latestJsonAsset) {
             console.log('latest.json asset not found, creating a new one');
-            const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
-            const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
             const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
-            const platforms = {};
-            let hasOnlineAssets = false;
-            const repoInfo = getRepositoryInfo();
-            for (const asset of release.assets) {
-                if (asset.name === 'latest.json' || asset.name.endsWith('.sig'))
-                    continue;
-                hasOnlineAssets = true;
-                const platformKey = getPlatformKey(asset.name);
-                if (platformKey) {
-                    const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
-                    platforms[platformKey] = {
-                        url: `${downloadUrl}/${asset.name}`,
-                        signature: signature
-                    };
-                }
-            }
-            if (!hasOnlineAssets && localUploadDir && fs.existsSync(localUploadDir)) {
-                console.log('No online assets found, using local upload directory:', localUploadDir);
-                const localFiles = getAllFiles(localUploadDir);
-                for (const filePath of localFiles) {
-                    const fileName = path.basename(filePath);
-                    if (fileName === 'latest.json' || fileName.endsWith('.sig'))
-                        continue;
-                    const platformKey = getPlatformKey(fileName);
-                    if (platformKey) {
-                        const sigFilePath = path.join(localUploadDir, fileName + '.sig');
-                        const signature = fs.existsSync(sigFilePath)
-                            ? fs.readFileSync(sigFilePath, 'utf-8').trim()
-                            : '';
-                        platforms[platformKey] = {
-                            url: `${downloadUrl}/${fileName}`,
-                            signature: signature
-                        };
-                        console.log(`Added local file: ${fileName} -> ${platformKey}`);
-                    }
-                }
-            }
+            const platforms = await buildPlatformsFromAssets(release, downloadUrl, localUploadDir);
             const defaultLatestJson = {
                 version: targetVersion,
                 notes: '',
@@ -435,9 +442,8 @@ async function updateAndUploadLatestJson(release, targetVersion, localUploadDir)
             }
             const version = contentJson.version || targetVersion;
             console.log('Version:', version);
-            const cdnBase = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
-            const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
-            outputContent = contentStr.replace(new RegExp(baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `${normalizedCdnBase}download/v${version}`);
+            const downloadUrl = `${normalizedCdnBase}download/v${version}`;
+            outputContent = contentStr.replace(new RegExp(baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), downloadUrl);
         }
         if (!createDirectory(outputDir)) {
             throw new Error(`Failed to create output directory: ${outputDir}`);
