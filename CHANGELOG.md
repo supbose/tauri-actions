@@ -1,4 +1,12 @@
 
+## v0.0.13
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.12...v0.0.13)
+
+### 💅 重构
+
+- **platform:** Rewrite platform key parsing to support multiple keys per asset (e368e85)
+
 ## v0.0.12
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.11...v0.0.12)
