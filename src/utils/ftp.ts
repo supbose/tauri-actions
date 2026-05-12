@@ -14,12 +14,16 @@ export async function uploadToFTP(localDir: string, ftpConfig: FtpConfig): Promi
     console.log(`Local directory: ${localDir}`);
     console.log(`Server directory: ${ftpConfig.serverDir}`);
 
+    // Ensure local-dir and server-dir end with / as required by ftp-deploy
+    const normalizedLocalDir = localDir.endsWith('/') ? localDir : localDir + '/';
+    const normalizedServerDir = (ftpConfig.serverDir || '/').endsWith('/') ? ftpConfig.serverDir : (ftpConfig.serverDir || '') + '/';
+    
     await deploy({
       server: ftpConfig.host,
       username: ftpConfig.user,
       password: ftpConfig.password,
-      'local-dir': localDir,
-      'server-dir': ftpConfig.serverDir || '/',
+      'local-dir': normalizedLocalDir,
+      'server-dir': normalizedServerDir,
       'dangerous-clean-slate': false,
       exclude: excludeDefaults
     });

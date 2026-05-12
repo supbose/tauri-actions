@@ -5,12 +5,14 @@ export async function uploadToFTP(localDir, ftpConfig) {
         console.log(`Uploading files to FTP server: ${ftpConfig.host}`);
         console.log(`Local directory: ${localDir}`);
         console.log(`Server directory: ${ftpConfig.serverDir}`);
+        const normalizedLocalDir = localDir.endsWith('/') ? localDir : localDir + '/';
+        const normalizedServerDir = (ftpConfig.serverDir || '/').endsWith('/') ? ftpConfig.serverDir : (ftpConfig.serverDir || '') + '/';
         await deploy({
             server: ftpConfig.host,
             username: ftpConfig.user,
             password: ftpConfig.password,
-            'local-dir': localDir,
-            'server-dir': ftpConfig.serverDir || '/',
+            'local-dir': normalizedLocalDir,
+            'server-dir': normalizedServerDir,
             'dangerous-clean-slate': false,
             exclude: excludeDefaults
         });

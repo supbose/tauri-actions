@@ -1,1 +1,1 @@
-{"version":3,"file":"ftp.d.ts","sourceRoot":"","sources":["../../src/utils/ftp.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,SAAS,EAAE,gBAAgB,EAAE,MAAM,UAAU,CAAC;AASvD,wBAAsB,WAAW,CAAC,QAAQ,EAAE,MAAM,EAAE,SAAS,EAAE,SAAS,GAAG,OAAO,CAAC,gBAAgB,CAAC,CAiCnG"}
+{"version":3,"file":"ftp.d.ts","sourceRoot":"","sources":["../../src/utils/ftp.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,SAAS,EAAE,gBAAgB,EAAE,MAAM,UAAU,CAAC;AASvD,wBAAsB,WAAW,CAAC,QAAQ,EAAE,MAAM,EAAE,SAAS,EAAE,SAAS,GAAG,OAAO,CAAC,gBAAgB,CAAC,CAqCnG"}
