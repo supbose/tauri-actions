@@ -134,6 +134,22 @@ async function run(): Promise<void> {
 
       case 'use':
         console.log("FTP upload enabled with built-in functionality...");
+
+        // If latest upload is enabled, generate latest.json first
+        if (inputs.uploadLatest === 'use' && inputs.githubToken) {
+          console.log(`✅ --------------------------------`);
+          console.log(`✅ Generating latest.json before FTP upload`);
+          console.log(`✅ GitHub Token: ${inputs.githubToken}`);
+          console.log(`✅ --------------------------------`);
+          
+          try {
+            await uploadLatestVersion(version, targetDir);
+            core.setOutput('latest-upload-success', 'true');
+          } catch (error) {
+            core.setOutput('latest-upload-success', 'false');
+            console.error('Failed to generate latest version:', error);
+          }
+        }
         
         const uploadResult = await uploadToFTP(targetDir, {
           host: inputs.ftpHost,
@@ -144,22 +160,6 @@ async function run(): Promise<void> {
 
         ftpUploadSuccess = uploadResult.success;
         core.setOutput('ftp-upload-success', ftpUploadSuccess.toString());
-
-        // If both FTP and latest upload are enabled
-        if (ftpUploadSuccess && inputs.uploadLatest === 'use' && inputs.githubToken) {
-          console.log(`✅ --------------------------------`);
-          console.log(`✅ Using built-in FTP upload for latest version`);
-          console.log(`✅ GitHub Token: ${inputs.githubToken}`);
-          console.log(`✅ --------------------------------`);
-          
-          try {
-            await uploadLatestVersion(version, targetDir);
-            core.setOutput('latest-upload-success', 'true');
-          } catch (error) {
-            core.setOutput('latest-upload-success', 'false');
-            console.error('Failed to upload latest version:', error);
-          }
-        }
         break;
 
       default:

@@ -91,17 +91,9 @@ async function run() {
                 break;
             case 'use':
                 console.log("FTP upload enabled with built-in functionality...");
-                const uploadResult = await uploadToFTP(targetDir, {
-                    host: inputs.ftpHost,
-                    user: inputs.ftpUsername,
-                    password: inputs.ftpPassword,
-                    serverDir: formatPath(inputs.ftpServerDir) + `v${version}/` || `download/v${version}/`
-                });
-                ftpUploadSuccess = uploadResult.success;
-                core.setOutput('ftp-upload-success', ftpUploadSuccess.toString());
-                if (ftpUploadSuccess && inputs.uploadLatest === 'use' && inputs.githubToken) {
+                if (inputs.uploadLatest === 'use' && inputs.githubToken) {
                     console.log(`✅ --------------------------------`);
-                    console.log(`✅ Using built-in FTP upload for latest version`);
+                    console.log(`✅ Generating latest.json before FTP upload`);
                     console.log(`✅ GitHub Token: ${inputs.githubToken}`);
                     console.log(`✅ --------------------------------`);
                     try {
@@ -110,9 +102,17 @@ async function run() {
                     }
                     catch (error) {
                         core.setOutput('latest-upload-success', 'false');
-                        console.error('Failed to upload latest version:', error);
+                        console.error('Failed to generate latest version:', error);
                     }
                 }
+                const uploadResult = await uploadToFTP(targetDir, {
+                    host: inputs.ftpHost,
+                    user: inputs.ftpUsername,
+                    password: inputs.ftpPassword,
+                    serverDir: formatPath(inputs.ftpServerDir) + `v${version}/` || `download/v${version}/`
+                });
+                ftpUploadSuccess = uploadResult.success;
+                core.setOutput('ftp-upload-success', ftpUploadSuccess.toString());
                 break;
             default:
                 core.setFailed(`Invalid enable-ftp value: ${inputs.enableFtp}`);

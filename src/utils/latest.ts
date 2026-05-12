@@ -162,6 +162,13 @@ export async function updateAndUploadLatestJson(
     fs.writeFileSync(latestJsonPath, outputContent, 'utf-8');
     console.log(`Latest.json written to: ${latestJsonPath}`);
     
+    // Copy to upload directory for FTP upload
+    if (localUploadDir && fs.existsSync(localUploadDir)) {
+      const uploadPath = path.join(localUploadDir, 'latest.json');
+      fs.copyFileSync(latestJsonPath, uploadPath);
+      console.log(`Latest.json copied to upload directory: ${uploadPath}`);
+    }
+    
     // Print the URL
     const latestJsonUrl = `${normalizedCdnBase}updater/latest.json`;
     console.log('🚀 Latest.json URL:', latestJsonUrl);

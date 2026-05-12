@@ -24,7 +24,7 @@ export async function uploadToFTP(localDir: string, ftpConfig: FtpConfig): Promi
       password: ftpConfig.password,
       'local-dir': normalizedLocalDir,
       'server-dir': normalizedServerDir,
-      'dangerous-clean-slate': false,
+      'dangerous-clean-slate': true,
       exclude: excludeDefaults
     });
 
