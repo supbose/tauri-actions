@@ -9,7 +9,8 @@
     "mbump": "mbump",
     "build:full": "pnpm build && pnpm package && pnpm mbump",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "up": "npx taze -I"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",

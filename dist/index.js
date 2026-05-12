@@ -325,38 +325,51 @@ async function getReleaseAssetContent(options, asset) {
         throw error;
     }
 }
-function getPlatformKey(fileName) {
+function getPlatformKeys(fileName) {
+    const keys = [];
     if (fileName.includes('x64') || fileName.includes('x86_64')) {
         if (fileName.includes('.msi')) {
-            return 'windows-x86_64-msi';
+            keys.push('windows-x86_64-msi');
+            keys.push('windows-x86_64');
         }
         else if (fileName.includes('-setup.exe') || fileName.includes('_setup.exe')) {
-            return 'windows-x86_64-nsis';
+            keys.push('windows-x86_64-nsis');
+            keys.push('windows-x86_64');
         }
         else if (fileName.includes('.zip') || fileName.includes('.exe')) {
-            return 'windows-x86_64';
+            keys.push('windows-x86_64');
         }
     }
-    else if (fileName.includes('arm64') && fileName.includes('.msi')) {
-        return 'windows-aarch64-msi';
+    if (fileName.includes('arm64')) {
+        if (fileName.includes('.msi')) {
+            keys.push('windows-aarch64-msi');
+            keys.push('windows-aarch64');
+        }
+        else if (fileName.includes('-setup.exe') || fileName.includes('_setup.exe')) {
+            keys.push('windows-aarch64-nsis');
+            keys.push('windows-aarch64');
+        }
+        else if (fileName.includes('.zip')) {
+            keys.push('windows-aarch64');
+        }
     }
-    else if (fileName.includes('darwin') || fileName.includes('mac')) {
+    if (fileName.includes('darwin') || fileName.includes('mac')) {
         if (fileName.includes('arm64')) {
-            return 'darwin-aarch64';
+            keys.push('darwin-aarch64');
         }
         else {
-            return 'darwin-x86_64';
+            keys.push('darwin-x86_64');
         }
     }
-    else if (fileName.includes('linux')) {
+    if (fileName.includes('linux')) {
         if (fileName.includes('amd64') || fileName.includes('x86_64')) {
-            return 'linux-x86_64';
+            keys.push('linux-x86_64');
         }
         else if (fileName.includes('arm64')) {
-            return 'linux-aarch64';
+            keys.push('linux-aarch64');
         }
     }
-    return '';
+    return keys;
 }
 async function getSignatureForAsset(repoInfo, assetName, assets) {
     const sigAsset = assets.find(a => a.name === assetName + '.sig');
@@ -382,17 +395,19 @@ async function buildPlatformsFromAssets(release, downloadUrl, localUploadDir) {
             const fileName = path.basename(filePath);
             if (fileName === 'latest.json' || fileName.endsWith('.sig'))
                 continue;
-            const platformKey = getPlatformKey(fileName);
-            if (platformKey) {
+            const platformKeys = getPlatformKeys(fileName);
+            if (platformKeys.length > 0) {
                 const sigFilePath = path.join(localUploadDir, fileName + '.sig');
                 const signature = fs.existsSync(sigFilePath)
                     ? fs.readFileSync(sigFilePath, 'utf-8').trim()
                     : '';
-                platforms[platformKey] = {
-                    url: `${downloadUrl}/${fileName}`,
-                    signature: signature
-                };
-                console.log(`Added local file: ${fileName} -> ${platformKey}`);
+                for (const platformKey of platformKeys) {
+                    platforms[platformKey] = {
+                        url: `${downloadUrl}/${fileName}`,
+                        signature: signature
+                    };
+                    console.log(`Added local file: ${fileName} -> ${platformKey}`);
+                }
             }
         }
         if (Object.keys(platforms).length > 0) {
@@ -404,13 +419,15 @@ async function buildPlatformsFromAssets(release, downloadUrl, localUploadDir) {
     for (const asset of release.assets) {
         if (asset.name === 'latest.json' || asset.name.endsWith('.sig'))
             continue;
-        const platformKey = getPlatformKey(asset.name);
-        if (platformKey) {
+        const platformKeys = getPlatformKeys(asset.name);
+        if (platformKeys.length > 0) {
             const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
-            platforms[platformKey] = {
-                url: `${downloadUrl}/${asset.name}`,
-                signature: signature
-            };
+            for (const platformKey of platformKeys) {
+                platforms[platformKey] = {
+                    url: `${downloadUrl}/${asset.name}`,
+                    signature: signature
+                };
+            }
         }
     }
     return platforms;
