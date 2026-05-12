@@ -1,4 +1,12 @@
 
+## v0.0.9
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.8...v0.0.9)
+
+### 🩹 修复
+
+- 为fs.readdirSync调用添加utf8编码参数 (fe9705f)
+
 ## v0.0.8
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.7...v0.0.8)
