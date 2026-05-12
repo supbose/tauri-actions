@@ -1,4 +1,12 @@
 
+## v0.0.12
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.11...v0.0.12)
+
+### 🚀 特性
+
+- Add fetch latest commit message to populate release notes (0e7ca09)
+
 ## v0.0.11
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.10...v0.0.11)
