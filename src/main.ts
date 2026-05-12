@@ -425,7 +425,7 @@ function getPlatformKeys(fileName: string): string[] {
   if (fileName.includes('arm64')) {
     if (fileName.includes('.msi')) {
       keys.push('windows-aarch64-msi');
-      keys.push('windows-aarch64');
+     
     } else if (fileName.includes('-setup.exe') || fileName.includes('_setup.exe')) {
       keys.push('windows-aarch64-nsis');
       keys.push('windows-aarch64');
