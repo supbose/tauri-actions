@@ -61,7 +61,7 @@ function initializeToken() {
 }
 function getAllFiles(dirPath, arrayOfFiles = []) {
     try {
-        const files = fs.readdirSync(dirPath, { withFileTypes: true });
+        const files = fs.readdirSync(dirPath, { withFileTypes: true, encoding: 'utf-8' });
         for (const file of files) {
             const fullPath = path.join(dirPath, file.name);
             if (file.isDirectory()) {
