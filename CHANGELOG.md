@@ -1,4 +1,57 @@
 
+## v0.0.19
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.18...v0.0.19)
+
+### 🚀 特性
+
+- 添加版本过滤复制文件的功能 (043a58f)
+- **files utils:** Add copied files list output in copyFiles function (c09d607)
+- **utils:** 新增joinUrl和formatUrl工具函数并重构URL拼接逻辑 (9be22fe)
+- **platform工具:** 重构并完善平台文件识别逻辑 (91373b8)
+- 添加按文件扩展名复制的功能 (3044078)
+- **utils:** 新增Tauri目标平台自动检测功能 (4003af8)
+
+### 🩹 修复
+
+- **validation:** 修复Windows盘符路径校验逻辑，新增合法Windows路径测试用例 (bbe8506)
+- 适配FTP服务器目录配置，修正资源访问路径 (9a66fc6)
+- **utils/latest:** 修复serverDir路径末尾斜杠重复拼接问题 (375e18d)
+- **utils/latest:** 优化latest.json生成更新逻辑 (ce0d1bd)
+- 仅在windows平台下按版本过滤输入参数 (a80543e)
+- **utils/latest:** 修复签名文件匹配逻辑并添加调试日志 (77103bb)
+- **utils:** 优化签名文件匹配逻辑，支持不区分大小写和平台 fallback (9ad01cb)
+- **utils/latest:** 修复getSignatureForAsset返回值错误 (8973edc)
+- 修复时区格式化和24点时间显示问题 (593f10a)
+
+### 💅 重构
+
+- **validation:** 新增验证工具模块并重构日志脱敏逻辑 (08bf740)
+- 优化FTP上传路径并修复清理开关 (c3b7f7d)
+- **utils/latest:** 重构构建平台资源方法，适配CDN路径格式 (9796170)
+- **utils/latest:** 简化latest.json生成逻辑，不再读取现有文件 (0f91f05)
+- **utils:** 简化获取资产签名的逻辑 (a29bcab)
+- **utils:** 重构签名获取逻辑，统一使用本地签名处理 (dba117e)
+- **utils:** 重构时间格式化与OS检测相关逻辑 (33f387d)
+- **utils:** 替换formatDateTimeWithTimezone为getISOWithTimeZone (b16007d)
+
+### 📖 文档
+
+- 新增优化分析、开发文档并更新README (90f7a0f)
+
+### 📦 打包
+
+- 移除build:full命令中的mbump步骤 (0399b20)
+
+### 🏡 框架
+
+- 修正ftp上传的危险清空目标目录参数 (32010ad)
+- 移除下载路径中的download目录层级 (eabc617)
+
+### ✅ 测试
+
+- 新增完整的单元测试与 Jest 配置 (f14b109)
+
 ## v0.0.18
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.17...v0.0.18)
