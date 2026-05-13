@@ -2,7 +2,7 @@
   "name": "up-actions",
   "version": "0.0.17",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
     "package": "esbuild src/main.ts --bundle --platform=node --outfile=dist/index.js --minify",
