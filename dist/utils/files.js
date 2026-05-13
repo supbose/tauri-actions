@@ -62,6 +62,7 @@ export function copyFiles(sourceDir, targetDir, version) {
         let fileCount = 0;
         let errorCount = 0;
         let skippedCount = 0;
+        const copiedFiles = [];
         for (const file of files) {
             try {
                 const fileName = path.basename(file);
@@ -73,6 +74,7 @@ export function copyFiles(sourceDir, targetDir, version) {
                 const targetPath = path.join(targetDir, fileName);
                 fs.copyFileSync(file, targetPath);
                 console.log(`Copied: ${fileName}`);
+                copiedFiles.push(fileName);
                 fileCount++;
             }
             catch (error) {
@@ -81,6 +83,13 @@ export function copyFiles(sourceDir, targetDir, version) {
             }
         }
         console.log(`Copy completed! Files copied: ${fileCount}, Skipped: ${skippedCount}, Errors: ${errorCount}`);
+        if (copiedFiles.length > 0) {
+            console.log('\n=== Copied Files List ===');
+            copiedFiles.forEach((file, index) => {
+                console.log(`${index + 1}. ${file}`);
+            });
+            console.log('=========================\n');
+        }
         if (errorCount > 0) {
             console.log(`Warning: ${errorCount} file(s) failed to copy`);
         }
