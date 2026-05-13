@@ -15,50 +15,22 @@ import { formatDateTimeWithTimezone, ensureTrailingSlash, joinUrl } from './util
  * @returns Signature content or empty string
  */
 export async function getSignatureForAsset(repoInfo: any, assetName: string, assets: ReleaseAsset[]): Promise<string> {
-  const lowerAssetName = assetName.toLowerCase();
+  // 直接查找所有 .sig 文件
+  const allSigAssets = assets.filter(a => a.name.toLowerCase().endsWith('.sig'));
   
-  // 1. 精确匹配（不区分大小写）
-  const sigAsset = assets.find(a => a.name.toLowerCase() === lowerAssetName + '.sig');
-  
-  // 2. 如果没找到，尝试查找同平台的签名作为备用
-  let fallbackSigAsset = null;
-  if (!sigAsset) {
-    // 获取当前文件的平台信息
-    const platformKeys = getPlatformKeys(assetName);
+  if (allSigAssets.length > 0) {
+    const lowerAssetName = assetName.toLowerCase();
     
-    // 查找所有 .sig 文件
-    const allSigAssets = assets.filter(a => a.name.toLowerCase().endsWith('.sig'));
+    // 优先查找精确匹配的签名（不区分大小写）
+    const sigAsset = allSigAssets.find(a => a.name.toLowerCase() === lowerAssetName + '.sig');
     
-    if (allSigAssets.length > 0) {
-      // 优先查找相同平台的签名
-      for (const sig of allSigAssets) {
-        // 移除 .sig 后缀获取原始文件名
-        const sigBaseName = sig.name.substring(0, sig.name.length - 4);
-        const sigPlatformKeys = getPlatformKeys(sigBaseName);
-        
-        // 检查是否有共同的平台
-        const hasMatchingPlatform = platformKeys.some(pk => 
-          sigPlatformKeys.some(spk => pk.startsWith(spk.split('-')[0]) || spk.startsWith(pk.split('-')[0]))
-        );
-        
-        if (hasMatchingPlatform) {
-          fallbackSigAsset = sig;
-          break;
-        }
-      }
-      
-      // 如果没有平台匹配，使用第一个找到的签名作为最后的备用
-      if (!fallbackSigAsset) {
-        fallbackSigAsset = allSigAssets[0];
-      }
-      
-      console.log(`No exact signature found for ${assetName}, using fallback: ${fallbackSigAsset.name}`);
+    // 如果没有精确匹配，使用第一个找到的签名
+    const targetAsset = sigAsset || allSigAssets[0];
+    
+    if (!sigAsset) {
+      console.log(`No exact signature found for ${assetName}, using: ${targetAsset.name}`);
     }
-  }
-  
-  const targetAsset = sigAsset || fallbackSigAsset;
-  
-  if (targetAsset) {
+    
     try {
       const signatureContent = await getReleaseAssetContent(repoInfo, targetAsset);
       console.log(`Loaded signature for ${assetName} (${targetAsset.name}):`);

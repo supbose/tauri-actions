@@ -6,30 +6,14 @@ import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
 import { formatDateTimeWithTimezone, ensureTrailingSlash, joinUrl } from './utils';
 export async function getSignatureForAsset(repoInfo, assetName, assets) {
-    const lowerAssetName = assetName.toLowerCase();
-    const sigAsset = assets.find(a => a.name.toLowerCase() === lowerAssetName + '.sig');
-    let fallbackSigAsset = null;
-    if (!sigAsset) {
-        const platformKeys = getPlatformKeys(assetName);
-        const allSigAssets = assets.filter(a => a.name.toLowerCase().endsWith('.sig'));
-        if (allSigAssets.length > 0) {
-            for (const sig of allSigAssets) {
-                const sigBaseName = sig.name.substring(0, sig.name.length - 4);
-                const sigPlatformKeys = getPlatformKeys(sigBaseName);
-                const hasMatchingPlatform = platformKeys.some(pk => sigPlatformKeys.some(spk => pk.startsWith(spk.split('-')[0]) || spk.startsWith(pk.split('-')[0])));
-                if (hasMatchingPlatform) {
-                    fallbackSigAsset = sig;
-                    break;
-                }
-            }
-            if (!fallbackSigAsset) {
-                fallbackSigAsset = allSigAssets[0];
-            }
-            console.log(`No exact signature found for ${assetName}, using fallback: ${fallbackSigAsset.name}`);
+    const allSigAssets = assets.filter(a => a.name.toLowerCase().endsWith('.sig'));
+    if (allSigAssets.length > 0) {
+        const lowerAssetName = assetName.toLowerCase();
+        const sigAsset = allSigAssets.find(a => a.name.toLowerCase() === lowerAssetName + '.sig');
+        const targetAsset = sigAsset || allSigAssets[0];
+        if (!sigAsset) {
+            console.log(`No exact signature found for ${assetName}, using: ${targetAsset.name}`);
         }
-    }
-    const targetAsset = sigAsset || fallbackSigAsset;
-    if (targetAsset) {
         try {
             const signatureContent = await getReleaseAssetContent(repoInfo, targetAsset);
             console.log(`Loaded signature for ${assetName} (${targetAsset.name}):`);
