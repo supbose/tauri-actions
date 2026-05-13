@@ -50,6 +50,7 @@ function getOSDirectory(platformKey: string): string {
  * @param targetVersion - Target version
  * @param localUploadDir - Local directory containing uploaded files
  * @param repoInfo - Repository info
+ * @param serverDir - FTP server directory prefix
  * @returns Platforms object
  */
 export async function buildPlatformsFromAssets(
@@ -57,7 +58,8 @@ export async function buildPlatformsFromAssets(
   cdnBase: string,
   targetVersion: string,
   localUploadDir?: string,
-  repoInfo?: any
+  repoInfo?: any,
+  serverDir: string = ''
 ): Promise<{ [key: string]: { url: string; signature: string } }> {
   const platforms: { [key: string]: { url: string; signature: string } } = {};
 
@@ -79,8 +81,9 @@ export async function buildPlatformsFromAssets(
 
         for (const platformKey of platformKeys) {
           const osDir = getOSDirectory(platformKey);
+          const basePath = serverDir ? `${serverDir}${osDir}/v${targetVersion}/` : `${osDir}/v${targetVersion}/`;
           platforms[platformKey] = {
-            url: `${cdnBase}${osDir}/download/v${targetVersion}/${fileName}`,
+            url: `${cdnBase}${basePath}${fileName}`,
             signature: signature
           };
           console.log(`Added local file: ${fileName} -> ${platformKey}`);
@@ -109,8 +112,9 @@ export async function buildPlatformsFromAssets(
       const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
       for (const platformKey of platformKeys) {
         const osDir = getOSDirectory(platformKey);
+        const basePath = serverDir ? `${serverDir}${osDir}/v${targetVersion}/` : `${osDir}/v${targetVersion}/`;
         platforms[platformKey] = {
-          url: `${cdnBase}${osDir}/download/v${targetVersion}/${asset.name}`,
+          url: `${cdnBase}${basePath}${asset.name}`,
           signature: signature
         };
       }
@@ -146,7 +150,8 @@ export async function updateAndUploadLatestJson(
     
     // Directly generate latest.json without fetching from online
     console.log('Generating new latest.json...');
-    const platforms = await buildPlatformsFromAssets(release, normalizedCdnBase, targetVersion, localUploadDir, repoInfo);
+    const serverDir = ftpConfig?.serverDir || '';
+    const platforms = await buildPlatformsFromAssets(release, normalizedCdnBase, targetVersion, localUploadDir, repoInfo, serverDir);
     
     // Generate pub_date with custom timezone
     console.log(`Using timezone: ${timezone}`);

@@ -33,7 +33,7 @@ inputs:
   ftp-server-dir:
     description: 'Remote directory on FTP server'
     required: false
-    default: ''
+    default: 'download'
   upload-latest:
     description: '是否上传Latest版本到FTP服务器'
     required: false
