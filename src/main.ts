@@ -16,12 +16,14 @@ import { copyFiles, createDirectory, verifyFiles, formatPath, getAllFiles } from
 import { uploadToFTP } from './utils/ftp';
 import { updateAndUploadLatestJson } from './utils/latest';
 import { validateInputs, sanitizeLogMessage } from './utils/validation';
+import { getSystemDirectory, getOSIdentifier } from './utils/utils';
 
 /**
  * Upload latest version files
  * @param targetVersion - Version to upload
  * @param localUploadDir - Local directory containing uploaded files
  * @param ftpConfig - FTP configuration for uploading latest.json
+ * @param osIdentifier - Operating system identifier (windows/macos/linux)
  */
 async function uploadLatestVersion(targetVersion: string, localUploadDir?: string, ftpConfig?: FtpConfig): Promise<void> {
   try {
@@ -149,6 +151,10 @@ async function run(): Promise<void> {
           serverDir: formatPath(inputs.ftpServerDir)
         };
         
+        // Get system identifier (windows/macos/linux)
+        const osIdentifier = getOSIdentifier();
+        console.log(`Detected operating system: ${osIdentifier}`);
+        
         // If latest upload is enabled, generate latest.json first and upload to updater directory
         if (inputs.uploadLatest === 'use' && inputs.githubToken) {
           console.log(`✅ --------------------------------`);
@@ -165,9 +171,13 @@ async function run(): Promise<void> {
           }
         }
         
+        // Build system-specific download directory path
+        const downloadDir = `${osIdentifier}/download/v${version}/`;
+        const finalServerDir = ftpConfig.serverDir ? `${ftpConfig.serverDir}${downloadDir}` : downloadDir;
+        
         const uploadResult = await uploadToFTP(targetDir, {
           ...ftpConfig,
-          serverDir: ftpConfig.serverDir + `v${version}/` || `download/v${version}/`
+          serverDir: finalServerDir
         });
 
         ftpUploadSuccess = uploadResult.success;

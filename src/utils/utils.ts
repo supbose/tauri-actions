@@ -144,6 +144,31 @@ export function isNotNullish<T>(value: T | null | undefined): value is T {
 }
 
 /**
+ * Get the current operating system identifier
+ * @returns OS identifier: 'windows', 'macos', or 'linux'
+ */
+export function getOSIdentifier(): 'windows' | 'macos' | 'linux' {
+  const platform = process.platform;
+  if (platform === 'win32') {
+    return 'windows';
+  } else if (platform === 'darwin') {
+    return 'macos';
+  } else {
+    return 'linux';
+  }
+}
+
+/**
+ * Get the system directory prefix for FTP upload
+ * @param baseDir - Base directory (e.g., 'download', 'updater')
+ * @returns System-specific directory path (e.g., 'windows/download', 'macos/updater')
+ */
+export function getSystemDirectory(baseDir: string): string {
+  const os = getOSIdentifier();
+  return `${os}/${baseDir}`;
+}
+
+/**
  * Check if value is an empty string, null, or undefined
  * @param value - Value to check
  * @returns True if value is empty

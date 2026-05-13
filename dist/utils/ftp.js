@@ -14,7 +14,7 @@ export async function uploadToFTP(localDir, ftpConfig) {
             password: ftpConfig.password,
             'local-dir': normalizedLocalDir,
             'server-dir': normalizedServerDir,
-            'dangerous-clean-slate': true,
+            'dangerous-clean-slate': false,
             exclude: excludeDefaults
         });
         console.log('FTP upload completed successfully!');

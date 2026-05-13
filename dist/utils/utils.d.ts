@@ -8,6 +8,8 @@ export declare function safeJsonParse<T = any>(str: string, fallback: T): T;
 export declare function safeJsonStringify(obj: any, fallback?: string, space?: number | string): string;
 export declare function truncate(str: string, maxLength: number, suffix?: string): string;
 export declare function isNotNullish<T>(value: T | null | undefined): value is T;
+export declare function getOSIdentifier(): 'windows' | 'macos' | 'linux';
+export declare function getSystemDirectory(baseDir: string): string;
 export declare function isEmpty(value: string | null | undefined): boolean;
 export declare function randomString(length?: number, chars?: string): string;
 export declare function deepClone<T>(obj: T): T;

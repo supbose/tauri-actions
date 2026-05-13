@@ -71,6 +71,22 @@ export function truncate(str, maxLength, suffix = '...') {
 export function isNotNullish(value) {
     return value !== null && value !== undefined;
 }
+export function getOSIdentifier() {
+    const platform = process.platform;
+    if (platform === 'win32') {
+        return 'windows';
+    }
+    else if (platform === 'darwin') {
+        return 'macos';
+    }
+    else {
+        return 'linux';
+    }
+}
+export function getSystemDirectory(baseDir) {
+    const os = getOSIdentifier();
+    return `${os}/${baseDir}`;
+}
 export function isEmpty(value) {
     return value == null || value.trim() === '';
 }

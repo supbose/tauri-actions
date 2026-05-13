@@ -6,6 +6,7 @@ import { copyFiles, createDirectory, verifyFiles, formatPath, getAllFiles } from
 import { uploadToFTP } from './utils/ftp';
 import { updateAndUploadLatestJson } from './utils/latest';
 import { validateInputs, sanitizeLogMessage } from './utils/validation';
+import { getOSIdentifier } from './utils/utils';
 async function uploadLatestVersion(targetVersion, localUploadDir, ftpConfig) {
     try {
         const repoInfo = getRepositoryInfo();
@@ -102,6 +103,8 @@ async function run() {
                     password: inputs.ftpPassword,
                     serverDir: formatPath(inputs.ftpServerDir)
                 };
+                const osIdentifier = getOSIdentifier();
+                console.log(`Detected operating system: ${osIdentifier}`);
                 if (inputs.uploadLatest === 'use' && inputs.githubToken) {
                     console.log(`✅ --------------------------------`);
                     console.log(`✅ Generating latest.json before FTP upload`);
@@ -116,9 +119,11 @@ async function run() {
                         console.error('Failed to generate latest version:', error);
                     }
                 }
+                const downloadDir = `${osIdentifier}/download/v${version}/`;
+                const finalServerDir = ftpConfig.serverDir ? `${ftpConfig.serverDir}${downloadDir}` : downloadDir;
                 const uploadResult = await uploadToFTP(targetDir, {
                     ...ftpConfig,
-                    serverDir: ftpConfig.serverDir + `v${version}/` || `download/v${version}/`
+                    serverDir: finalServerDir
                 });
                 ftpUploadSuccess = uploadResult.success;
                 core.setOutput('ftp-upload-success', ftpUploadSuccess.toString());
