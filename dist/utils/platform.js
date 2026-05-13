@@ -1,5 +1,17 @@
 export function getPlatformKeys(fileName) {
     const keys = [];
+    if (fileName.includes('darwin') || fileName.includes('mac') || fileName.includes('.dmg')) {
+        if (fileName.includes('arm64') || fileName.includes('aarch64')) {
+            keys.push('darwin-aarch64');
+        }
+        else if (fileName.includes('x64') || fileName.includes('x86_64')) {
+            keys.push('darwin-x86_64');
+        }
+        else {
+            keys.push('darwin-x86_64');
+        }
+        return keys;
+    }
     if (fileName.includes('x64') || fileName.includes('x86_64')) {
         if (fileName.includes('.msi')) {
             keys.push('windows-x86_64-msi');
@@ -12,7 +24,7 @@ export function getPlatformKeys(fileName) {
             keys.push('windows-x86_64');
         }
     }
-    if (fileName.includes('arm64')) {
+    if (fileName.includes('arm64') || fileName.includes('aarch64')) {
         if (fileName.includes('.msi')) {
             keys.push('windows-aarch64-msi');
         }
@@ -22,14 +34,6 @@ export function getPlatformKeys(fileName) {
         }
         else if (fileName.includes('.zip')) {
             keys.push('windows-aarch64');
-        }
-    }
-    if (fileName.includes('darwin') || fileName.includes('mac')) {
-        if (fileName.includes('arm64')) {
-            keys.push('darwin-aarch64');
-        }
-        else {
-            keys.push('darwin-x86_64');
         }
     }
     if (fileName.includes('linux')) {

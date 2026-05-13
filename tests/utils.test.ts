@@ -19,6 +19,7 @@ import {
   throttle,
   wait
 } from '../src/utils/utils';
+import { getPlatformKeys } from '../src/utils/platform';
 
 describe('Utils Module Tests', () => {
   describe('pad', () => {
@@ -373,6 +374,58 @@ describe('Utils Module Tests', () => {
       await wait(100);
       fn();
       expect(callCount).toBe(2);
+    });
+  });
+
+  describe('getPlatformKeys', () => {
+    // macOS tests
+    it('should identify macOS x64 DMG files', () => {
+      expect(getPlatformKeys('app-x86_64.dmg')).toEqual(['darwin-x86_64']);
+      expect(getPlatformKeys('app-x64.dmg')).toEqual(['darwin-x86_64']);
+    });
+
+    it('should identify macOS arm64 DMG files', () => {
+      expect(getPlatformKeys('app-aarch64.dmg')).toEqual(['darwin-aarch64']);
+      expect(getPlatformKeys('app-arm64.dmg')).toEqual(['darwin-aarch64']);
+    });
+
+    it('should identify macOS files with darwin in name', () => {
+      expect(getPlatformKeys('app-darwin-x86_64.zip')).toEqual(['darwin-x86_64']);
+      expect(getPlatformKeys('app-darwin-arm64.tar.gz')).toEqual(['darwin-aarch64']);
+    });
+
+    it('should identify macOS files with mac in name', () => {
+      expect(getPlatformKeys('app-mac-x64.dmg')).toEqual(['darwin-x86_64']);
+      expect(getPlatformKeys('app-mac-arm64.dmg')).toEqual(['darwin-aarch64']);
+    });
+
+    it('should default to x86_64 for macOS files without architecture', () => {
+      expect(getPlatformKeys('app.dmg')).toEqual(['darwin-x86_64']);
+    });
+
+    // Windows tests
+    it('should identify Windows x64 exe files', () => {
+      expect(getPlatformKeys('app-x64.exe')).toEqual(['windows-x86_64']);
+      expect(getPlatformKeys('app-x86_64-setup.exe')).toEqual(['windows-x86_64-nsis', 'windows-x86_64']);
+    });
+
+    it('should identify Windows x64 MSI files', () => {
+      expect(getPlatformKeys('app-x64.msi')).toEqual(['windows-x86_64-msi']);
+    });
+
+    it('should identify Windows arm64 files', () => {
+      expect(getPlatformKeys('app-arm64.msi')).toEqual(['windows-aarch64-msi']);
+      expect(getPlatformKeys('app-arm64-setup.exe')).toEqual(['windows-aarch64-nsis', 'windows-aarch64']);
+    });
+
+    // Linux tests
+    it('should identify Linux x64 files', () => {
+      expect(getPlatformKeys('app-linux-x86_64.deb')).toEqual(['linux-x86_64']);
+      expect(getPlatformKeys('app-linux-amd64.rpm')).toEqual(['linux-x86_64']);
+    });
+
+    it('should identify Linux arm64 files', () => {
+      expect(getPlatformKeys('app-linux-arm64.deb')).toEqual(['linux-aarch64']);
     });
   });
 });
