@@ -29,16 +29,33 @@ export async function getSignatureForAsset(repoInfo: any, assetName: string, ass
 }
 
 /**
+ * Get OS directory prefix based on platform key
+ * @param platformKey - Platform key (e.g., windows-x86_64, darwin-x86_64)
+ * @returns OS directory prefix (windows, macos, linux)
+ */
+function getOSDirectory(platformKey: string): string {
+  if (platformKey.startsWith('windows')) {
+    return 'windows';
+  } else if (platformKey.startsWith('darwin')) {
+    return 'macos';
+  } else {
+    return 'linux';
+  }
+}
+
+/**
  * Build platforms object from release assets and local files
  * @param release - Release data
- * @param downloadUrl - Base download URL
+ * @param cdnBase - CDN base URL
+ * @param targetVersion - Target version
  * @param localUploadDir - Local directory containing uploaded files
  * @param repoInfo - Repository info
  * @returns Platforms object
  */
 export async function buildPlatformsFromAssets(
   release: Release,
-  downloadUrl: string,
+  cdnBase: string,
+  targetVersion: string,
   localUploadDir?: string,
   repoInfo?: any
 ): Promise<{ [key: string]: { url: string; signature: string } }> {
@@ -61,8 +78,9 @@ export async function buildPlatformsFromAssets(
           : '';
 
         for (const platformKey of platformKeys) {
+          const osDir = getOSDirectory(platformKey);
           platforms[platformKey] = {
-            url: `${downloadUrl}/${fileName}`,
+            url: `${cdnBase}${osDir}/download/v${targetVersion}/${fileName}`,
             signature: signature
           };
           console.log(`Added local file: ${fileName} -> ${platformKey}`);
@@ -90,8 +108,9 @@ export async function buildPlatformsFromAssets(
     if (platformKeys.length > 0) {
       const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
       for (const platformKey of platformKeys) {
+        const osDir = getOSDirectory(platformKey);
         platforms[platformKey] = {
-          url: `${downloadUrl}/${asset.name}`,
+          url: `${cdnBase}${osDir}/download/v${targetVersion}/${asset.name}`,
           signature: signature
         };
       }
@@ -127,8 +146,7 @@ export async function updateAndUploadLatestJson(
     
     // Directly generate latest.json without fetching from online
     console.log('Generating new latest.json...');
-    const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
-    const platforms = await buildPlatformsFromAssets(release, downloadUrl, localUploadDir, repoInfo);
+    const platforms = await buildPlatformsFromAssets(release, normalizedCdnBase, targetVersion, localUploadDir, repoInfo);
     
     // Generate pub_date with custom timezone
     console.log(`Using timezone: ${timezone}`);
