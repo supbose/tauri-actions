@@ -1,4 +1,16 @@
 
+## v0.0.18
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.17...v0.0.18)
+
+### 📦 打包
+
+- 修正package.json中main入口文件路径 (5e275a0)
+
+### 🏡 框架
+
+- Rename package name from up-actions to tauri-actions (a9f95e4)
+
 ## v0.0.17
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.16...v0.0.17)
