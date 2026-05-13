@@ -70,7 +70,7 @@ export async function buildPlatformsFromAssets(
     const localFiles = getAllFiles(localUploadDir);
     for (const filePath of localFiles) {
       const fileName = path.basename(filePath);
-      if (fileName === 'latest.json' || fileName.endsWith('.sig')) continue;
+      if (fileName === 'latest.json' || fileName.toLowerCase().endsWith('.sig')) continue;
 
       const platformKeys = getPlatformKeys(fileName);
       if (platformKeys.length > 0) {
@@ -86,6 +86,11 @@ export async function buildPlatformsFromAssets(
             signature: signature
           };
           console.log(`Added local file: ${fileName} -> ${platformKey}`);
+          if (signature) {
+            console.log(`  - Loaded signature (${signature.length} chars)`);
+          } else {
+            console.log(`  - No signature file found: ${sigFilePath}`);
+          }
         }
       }
     }
@@ -104,7 +109,7 @@ export async function buildPlatformsFromAssets(
   }
 
   for (const asset of release.assets) {
-    if (asset.name === 'latest.json' || asset.name.endsWith('.sig')) continue;
+    if (asset.name === 'latest.json' || asset.name.toLowerCase().endsWith('.sig')) continue;
 
     const platformKeys = getPlatformKeys(asset.name);
     if (platformKeys.length > 0) {
