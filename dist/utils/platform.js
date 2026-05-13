@@ -36,12 +36,15 @@ export function getPlatformKeys(fileName) {
             keys.push('windows-aarch64');
         }
     }
-    if (fileName.includes('linux')) {
+    if (fileName.includes('linux') || fileName.includes('.AppImage') || fileName.includes('.deb') || fileName.includes('.rpm')) {
         if (fileName.includes('amd64') || fileName.includes('x86_64')) {
             keys.push('linux-x86_64');
         }
-        else if (fileName.includes('arm64')) {
+        else if (fileName.includes('arm64') || fileName.includes('aarch64')) {
             keys.push('linux-aarch64');
+        }
+        else {
+            keys.push('linux-x86_64');
         }
     }
     return keys;

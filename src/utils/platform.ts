@@ -43,12 +43,15 @@ export function getPlatformKeys(fileName: string): string[] {
     }
   }
   
-  // Linux
-  if (fileName.includes('linux')) {
+  // Linux - also check common Linux file extensions
+  if (fileName.includes('linux') || fileName.includes('.AppImage') || fileName.includes('.deb') || fileName.includes('.rpm')) {
     if (fileName.includes('amd64') || fileName.includes('x86_64')) {
       keys.push('linux-x86_64');
-    } else if (fileName.includes('arm64')) {
+    } else if (fileName.includes('arm64') || fileName.includes('aarch64')) {
       keys.push('linux-aarch64');
+    } else {
+      // Default to x86_64 if no architecture specified
+      keys.push('linux-x86_64');
     }
   }
   
