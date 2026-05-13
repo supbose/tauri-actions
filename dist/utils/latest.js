@@ -27,7 +27,7 @@ export async function getSignatureForAsset(repoInfo, assetName, assets) {
     else {
         console.log(`No signature file found for ${assetName}`);
     }
-    return '';
+    return '111';
 }
 function getOSDirectory(platformKey) {
     if (platformKey.startsWith('windows')) {

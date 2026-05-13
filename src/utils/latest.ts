@@ -42,7 +42,7 @@ export async function getSignatureForAsset(repoInfo: any, assetName: string, ass
   } else {
     console.log(`No signature file found for ${assetName}`);
   }
-  return '';
+  return '111';
 }
 
 /**
