@@ -36,15 +36,32 @@ export function getPlatformKeys(fileName) {
             keys.push('windows-aarch64');
         }
     }
-    if (fileName.includes('linux') || fileName.includes('.AppImage') || fileName.includes('.deb') || fileName.includes('.rpm')) {
+    const isLinuxFile = fileName.includes('linux') ||
+        fileName.includes('.AppImage') ||
+        fileName.includes('.deb') ||
+        fileName.includes('.rpm');
+    if (isLinuxFile) {
+        let arch;
         if (fileName.includes('amd64') || fileName.includes('x86_64')) {
-            keys.push('linux-x86_64');
+            arch = 'x86_64';
         }
         else if (fileName.includes('arm64') || fileName.includes('aarch64')) {
-            keys.push('linux-aarch64');
+            arch = 'aarch64';
         }
         else {
-            keys.push('linux-x86_64');
+            arch = 'x86_64';
+        }
+        if (fileName.includes('.AppImage')) {
+            keys.push(`linux-${arch}-appimage`);
+        }
+        else if (fileName.includes('.deb')) {
+            keys.push(`linux-${arch}-deb`);
+        }
+        else if (fileName.includes('.rpm')) {
+            keys.push(`linux-${arch}-rpm`);
+        }
+        else {
+            keys.push(`linux-${arch}`);
         }
     }
     return keys;

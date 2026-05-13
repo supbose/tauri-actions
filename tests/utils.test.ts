@@ -460,12 +460,16 @@ describe('Utils Module Tests', () => {
 
     // Linux tests
     it('should identify Linux x64 files', () => {
-      expect(getPlatformKeys('app-linux-x86_64.deb')).toEqual(['linux-x86_64']);
-      expect(getPlatformKeys('app-linux-amd64.rpm')).toEqual(['linux-x86_64']);
+      expect(getPlatformKeys('app-linux-x86_64.deb')).toEqual(['linux-x86_64-deb']);
+      expect(getPlatformKeys('app-linux-amd64.rpm')).toEqual(['linux-x86_64-rpm']);
+      expect(getPlatformKeys('app-linux-x86_64.AppImage')).toEqual(['linux-x86_64-appimage']);
+      expect(getPlatformKeys('app-linux-x86_64.tar.gz')).toEqual(['linux-x86_64']);
     });
 
     it('should identify Linux arm64 files', () => {
-      expect(getPlatformKeys('app-linux-arm64.deb')).toEqual(['linux-aarch64']);
+      expect(getPlatformKeys('app-linux-arm64.deb')).toEqual(['linux-aarch64-deb']);
+      expect(getPlatformKeys('app-linux-aarch64.rpm')).toEqual(['linux-aarch64-rpm']);
+      expect(getPlatformKeys('app-linux-arm64.AppImage')).toEqual(['linux-aarch64-appimage']);
     });
   });
 });

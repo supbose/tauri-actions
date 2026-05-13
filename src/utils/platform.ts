@@ -43,15 +43,31 @@ export function getPlatformKeys(fileName: string): string[] {
     }
   }
   
-  // Linux - also check common Linux file extensions
-  if (fileName.includes('linux') || fileName.includes('.AppImage') || fileName.includes('.deb') || fileName.includes('.rpm')) {
+  // Linux - check for common Linux file extensions
+  const isLinuxFile = fileName.includes('linux') || 
+                     fileName.includes('.AppImage') || 
+                     fileName.includes('.deb') || 
+                     fileName.includes('.rpm')  
+                     ;
+  
+  if (isLinuxFile) {
+    let arch: string;
     if (fileName.includes('amd64') || fileName.includes('x86_64')) {
-      keys.push('linux-x86_64');
+      arch = 'x86_64';
     } else if (fileName.includes('arm64') || fileName.includes('aarch64')) {
-      keys.push('linux-aarch64');
+      arch = 'aarch64';
     } else {
-      // Default to x86_64 if no architecture specified
-      keys.push('linux-x86_64');
+      arch = 'x86_64';
+    }
+
+    if (fileName.includes('.AppImage')) {
+      keys.push(`linux-${arch}-appimage`);
+    } else if (fileName.includes('.deb')) {
+      keys.push(`linux-${arch}-deb`);
+    } else if (fileName.includes('.rpm')) {
+      keys.push(`linux-${arch}-rpm`);
+    } else {
+      keys.push(`linux-${arch}`);
     }
   }
   
