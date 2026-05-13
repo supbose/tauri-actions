@@ -1,0 +1,18 @@
+export declare function pad(n: number, length?: number): string;
+export declare function ensureTrailingSlash(url: string): string;
+export declare function removeTrailingSlash(url: string): string;
+export declare function formatDateTimeWithTimezone(date: Date | number, timezone: string): string;
+export declare function formatUTCDate(date: Date | number): string;
+export declare function wait(ms: number): Promise<void>;
+export declare function safeJsonParse<T = any>(str: string, fallback: T): T;
+export declare function safeJsonStringify(obj: any, fallback?: string, space?: number | string): string;
+export declare function truncate(str: string, maxLength: number, suffix?: string): string;
+export declare function isNotNullish<T>(value: T | null | undefined): value is T;
+export declare function isEmpty(value: string | null | undefined): boolean;
+export declare function randomString(length?: number, chars?: string): string;
+export declare function deepClone<T>(obj: T): T;
+export declare function retry<T>(fn: () => Promise<T>, maxRetries?: number, delayMs?: number): Promise<T>;
+export declare function groupBy<T, K extends string | number>(array: T[], keyFn: (item: T) => K): Record<K, T[]>;
+export declare function debounce<T extends (...args: any[]) => any>(fn: T, delayMs: number): (...args: Parameters<T>) => void;
+export declare function throttle<T extends (...args: any[]) => any>(fn: T, delayMs: number): (...args: Parameters<T>) => void;
+//# sourceMappingURL=utils.d.ts.map

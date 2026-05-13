@@ -5,51 +5,7 @@ import { getPlatformKeys } from './platform';
 import { getReleaseAssetContent, getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
-
-/**
- * Format date/time with specified timezone to ISO 8601 format
- * @param date - Date object
- * @param timezone - Timezone string (e.g., Asia/Shanghai, UTC)
- * @returns Formatted datetime string (e.g., 2024-01-15T10:30:00+08:00)
- */
-function formatDateTimeWithTimezone(date: Date, timezone: string): string {
-  // Get UTC time components
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  
-  // Create a formatter for the date/time components in the specified timezone
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
-  
-  // Parse the formatted string
-  const parts = formatter.formatToParts(date);
-  const partMap = new Map(parts.map(p => [p.type, p.value]));
-  
-  const year = partMap.get('year') || date.getUTCFullYear().toString();
-  const month = partMap.get('month') || pad(date.getUTCMonth() + 1);
-  const day = partMap.get('day') || pad(date.getUTCDate());
-  const hour = partMap.get('hour') || pad(date.getUTCHours());
-  const minute = partMap.get('minute') || pad(date.getUTCMinutes());
-  const second = partMap.get('second') || pad(date.getUTCSeconds());
-  
-  // Calculate timezone offset for the specified timezone
-  const offsetDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
-  const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
-  const diffMs = offsetDate.getTime() - utcDate.getTime();
-  const offsetMinutes = Math.round(diffMs / 60000);
-  const offsetSign = offsetMinutes >= 0 ? '+' : '-';
-  const offsetHours = pad(Math.floor(Math.abs(offsetMinutes) / 60));
-  const offsetMins = pad(Math.abs(offsetMinutes) % 60);
-  
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${offsetSign}${offsetHours}:${offsetMins}`;
-}
+import { formatDateTimeWithTimezone, ensureTrailingSlash } from './utils';
 
 /**
  * Get signature content for an asset from release assets
@@ -167,7 +123,7 @@ export async function updateAndUploadLatestJson(
   try {
     console.log('Updating latest.json...');
     
-    const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
+    const normalizedCdnBase = ensureTrailingSlash(cdnBase);
     
     // Directly generate latest.json without fetching from online
     console.log('Generating new latest.json...');

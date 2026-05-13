@@ -1,6 +1,7 @@
 import { deploy, excludeDefaults } from '@samkirkland/ftp-deploy';
 import { FtpConfig, DeploymentResult } from '../types';
 import { getAllFiles } from './files';
+import { ensureTrailingSlash } from './utils';
 
 /**
  * Upload files to FTP server
@@ -15,8 +16,8 @@ export async function uploadToFTP(localDir: string, ftpConfig: FtpConfig): Promi
     console.log(`Server directory: ${ftpConfig.serverDir}`);
 
     // Ensure local-dir and server-dir end with / as required by ftp-deploy
-    const normalizedLocalDir = localDir.endsWith('/') ? localDir : localDir + '/';
-    const normalizedServerDir = (ftpConfig.serverDir || '/').endsWith('/') ? ftpConfig.serverDir : (ftpConfig.serverDir || '') + '/';
+    const normalizedLocalDir = ensureTrailingSlash(localDir);
+    const normalizedServerDir = ensureTrailingSlash(ftpConfig.serverDir || '/');
     
     await deploy({
       server: ftpConfig.host,

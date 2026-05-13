@@ -1,12 +1,13 @@
 import { deploy, excludeDefaults } from '@samkirkland/ftp-deploy';
 import { getAllFiles } from './files';
+import { ensureTrailingSlash } from './utils';
 export async function uploadToFTP(localDir, ftpConfig) {
     try {
         console.log(`Uploading files to FTP server: ${ftpConfig.host}`);
         console.log(`Local directory: ${localDir}`);
         console.log(`Server directory: ${ftpConfig.serverDir}`);
-        const normalizedLocalDir = localDir.endsWith('/') ? localDir : localDir + '/';
-        const normalizedServerDir = (ftpConfig.serverDir || '/').endsWith('/') ? ftpConfig.serverDir : (ftpConfig.serverDir || '') + '/';
+        const normalizedLocalDir = ensureTrailingSlash(localDir);
+        const normalizedServerDir = ensureTrailingSlash(ftpConfig.serverDir || '/');
         await deploy({
             server: ftpConfig.host,
             username: ftpConfig.user,

@@ -1,6 +1,7 @@
 import { getOctokit, context } from "@actions/github";
 import { Octokit } from '@octokit/core';
 import { RepositoryInfo, Release, ReleaseAsset } from '../types';
+import { safeJsonStringify } from './utils';
 
 let GITHUB_TOKEN: string;
 
@@ -118,7 +119,7 @@ export async function getReleaseAssetContent(repoInfo: RepositoryInfo, asset: Re
       return data;
     } else if (typeof data === 'object') {
       console.log('Data is object, stringifying');
-      return JSON.stringify(data);
+      return safeJsonStringify(data, '{}');
     } else {
       console.warn(`Unexpected data type for asset ${asset.name}: ${typeof data}`);
       return String(data);

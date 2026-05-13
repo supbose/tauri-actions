@@ -4,35 +4,7 @@ import { getPlatformKeys } from './platform';
 import { getReleaseAssetContent, getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
-function formatDateTimeWithTimezone(date, timezone) {
-    const pad = (n) => n.toString().padStart(2, '0');
-    const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: timezone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    });
-    const parts = formatter.formatToParts(date);
-    const partMap = new Map(parts.map(p => [p.type, p.value]));
-    const year = partMap.get('year') || date.getUTCFullYear().toString();
-    const month = partMap.get('month') || pad(date.getUTCMonth() + 1);
-    const day = partMap.get('day') || pad(date.getUTCDate());
-    const hour = partMap.get('hour') || pad(date.getUTCHours());
-    const minute = partMap.get('minute') || pad(date.getUTCMinutes());
-    const second = partMap.get('second') || pad(date.getUTCSeconds());
-    const offsetDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
-    const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
-    const diffMs = offsetDate.getTime() - utcDate.getTime();
-    const offsetMinutes = Math.round(diffMs / 60000);
-    const offsetSign = offsetMinutes >= 0 ? '+' : '-';
-    const offsetHours = pad(Math.floor(Math.abs(offsetMinutes) / 60));
-    const offsetMins = pad(Math.abs(offsetMinutes) % 60);
-    return `${year}-${month}-${day}T${hour}:${minute}:${second}${offsetSign}${offsetHours}:${offsetMins}`;
-}
+import { formatDateTimeWithTimezone, ensureTrailingSlash } from './utils';
 export async function getSignatureForAsset(repoInfo, assetName, assets) {
     const sigAsset = assets.find(a => a.name === assetName + '.sig');
     if (sigAsset) {
@@ -100,7 +72,7 @@ export async function buildPlatformsFromAssets(release, downloadUrl, localUpload
 export async function updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBase, ftpConfig, timezone = 'Asia/Shanghai') {
     try {
         console.log('Updating latest.json...');
-        const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
+        const normalizedCdnBase = ensureTrailingSlash(cdnBase);
         console.log('Generating new latest.json...');
         const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
         const platforms = await buildPlatformsFromAssets(release, downloadUrl, localUploadDir, repoInfo);
