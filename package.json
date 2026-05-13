@@ -1,7 +1,7 @@
 {
   "name": "tauri-actions",
   "version": "0.0.18",
-  "description": "",
+  "description": "GitHub Action for Tauri app deployment with FTP and auto-update support",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
@@ -10,7 +10,10 @@
     "build:full": "pnpm build && pnpm package && pnpm mbump",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "up": "npx taze -I"
+    "up": "npx taze -I",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@actions/core": "^3.0.1",
@@ -20,13 +23,23 @@
     "dotenv": "^17.4.2"
   },
   "devDependencies": {
+    "@jest/globals": "^30.4.1",
     "@mznjs/mbump": "^1.0.6",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.19.41",
     "@vercel/ncc": "^0.38.4",
     "esbuild": "^0.28.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.9",
     "typescript": "^5.9.3"
   },
-  "keywords": [],
+  "keywords": [
+    "github-actions",
+    "tauri",
+    "ftp",
+    "deployment",
+    "auto-update"
+  ],
   "author": "supbose",
   "license": "ISC",
   "packageManager": "pnpm@10.33.4"
