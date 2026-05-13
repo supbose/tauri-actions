@@ -11,10 +11,11 @@ import { ActionInputs, FtpConfig } from './types';
 
 // Import utility modules
 import { initializeToken, getRepositoryInfo, getLatestRelease } from './utils/github';
-import { getVersionFromConfig, validateInputs } from './utils/version';
+import { getVersionFromConfig } from './utils/version';
 import { copyFiles, createDirectory, verifyFiles, formatPath, getAllFiles } from './utils/files';
 import { uploadToFTP } from './utils/ftp';
 import { updateAndUploadLatestJson } from './utils/latest';
+import { validateInputs, sanitizeLogMessage } from './utils/validation';
 
 /**
  * Upload latest version files
@@ -117,7 +118,7 @@ async function run(): Promise<void> {
     } else if (inputs.uploadLatest === 'use') {
       console.log(`✅ Using built-in FTP upload for latest version files`);
       if (inputs.githubToken) {
-        console.log(`✅ GitHub Token: ${inputs.githubToken}`);
+        console.log(`✅ GitHub Token: ${sanitizeLogMessage(inputs.githubToken)}`);
       }
     }
 
@@ -150,7 +151,7 @@ async function run(): Promise<void> {
         if (inputs.uploadLatest === 'use' && inputs.githubToken) {
           console.log(`✅ --------------------------------`);
           console.log(`✅ Generating latest.json before FTP upload`);
-          console.log(`✅ GitHub Token: ${inputs.githubToken}`);
+          console.log(`✅ GitHub Token: ${sanitizeLogMessage(inputs.githubToken)}`);
           console.log(`✅ --------------------------------`);
           
           try {
