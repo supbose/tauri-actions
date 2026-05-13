@@ -88,12 +88,47 @@ export async function updateAndUploadLatestJson(release, targetVersion, localUpl
         }
         else {
             console.log('Found existing latest.json asset, updating CDN URL');
-            const contentStr = await getReleaseAssetContent(repoInfo, latestJsonAsset);
-            const contentJson = JSON.parse(contentStr);
-            const version = contentJson.version || targetVersion;
-            console.log('Version:', version);
-            const downloadUrl = `${normalizedCdnBase}download/v${version}`;
-            outputContent = contentStr.replace(/"url":\s*"[^"]+"/g, `"url": "${downloadUrl}/$&".replace(/"url":\s*"/, '').replace(/"$/, '')`);
+            try {
+                const contentStr = await getReleaseAssetContent(repoInfo, latestJsonAsset);
+                console.log(`latest.json content (first 500 chars): ${contentStr.substring(0, 500)}`);
+                let contentJson;
+                try {
+                    contentJson = JSON.parse(contentStr);
+                }
+                catch (parseError) {
+                    console.warn('Failed to parse latest.json as JSON, creating new one:', parseError);
+                    contentJson = {
+                        version: targetVersion,
+                        notes: '',
+                        platforms: {}
+                    };
+                }
+                const version = contentJson.version || targetVersion;
+                console.log('Version:', version);
+                const downloadUrl = `${normalizedCdnBase}download/v${version}`;
+                if (contentJson.platforms) {
+                    for (const [platformKey, platformData] of Object.entries(contentJson.platforms)) {
+                        const data = platformData;
+                        const fileName = path.basename(data.url || '');
+                        contentJson.platforms[platformKey] = {
+                            url: `${downloadUrl}/${fileName}`,
+                            signature: data.signature || ''
+                        };
+                    }
+                }
+                outputContent = JSON.stringify(contentJson, null, 2);
+            }
+            catch (error) {
+                console.error('Failed to update existing latest.json, creating new one:', error);
+                const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
+                const platforms = await buildPlatformsFromAssets(release, downloadUrl, localUploadDir, repoInfo);
+                outputContent = JSON.stringify({
+                    version: targetVersion,
+                    notes: await getGitCommitMessage(repoInfo),
+                    pub_date: new Date().toISOString(),
+                    platforms: platforms
+                }, null, 2);
+            }
         }
         const outputDir = './output';
         if (!fs.existsSync(outputDir)) {
