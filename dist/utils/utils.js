@@ -94,13 +94,11 @@ export function getISOWithTimeZone(date, timeZone = 'Asia/Shanghai') {
     if (timeZoneName !== 'GMT') {
         const match = timeZoneName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
         if (match) {
-            const sign = match[1];
-            const hours = match[2].padStart(2, '0');
-            const minutes = match[3] || '00';
-            offset = `${sign}${hours}:${minutes}`;
+            offset = `${match[1]}${match[2].padStart(2, '0')}:${match[3] || '00'}`;
         }
     }
-    return `${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`;
+    const hourStr = hour === '24' ? '00' : hour;
+    return `${year}-${month}-${day}T${hourStr}:${minute}:${second}${offset}`;
 }
 export function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

@@ -176,25 +176,22 @@ export function getISOWithTimeZone(date: Date | number,timeZone: string = 'Asia/
   });
 
   const parts = formatter.formatToParts(dateObj);
-  const partValues = {};
-  parts.forEach(p => (partValues as any)[p.type] = p.value);
+  const partValues: Record<string, string> = {};
+  parts.forEach(p => partValues[p.type] = p.value);
 
-  // 提取并拼接成 ISO 格式
-  const { year, month, day, hour, minute, second, timeZoneName } = partValues as any;
+  const { year, month, day, hour, minute, second, timeZoneName } = partValues;
 
-  // 将 "GMT+8" 或 "GMT-5" 等格式转换为标准的 "+08:00" 或 "-05:00"
   let offset = 'Z';
   if (timeZoneName !== 'GMT') {
     const match = timeZoneName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
     if (match) {
-      const sign = match[1];
-      const hours = match[2].padStart(2, '0');
-      const minutes = match[3] || '00';
-      offset = `${sign}${hours}:${minutes}`;
+      offset = `${match[1]}${match[2].padStart(2, '0')}:${match[3] || '00'}`;
     }
   }
 
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`;
+  const hourStr = hour === '24' ? '00' : hour;
+
+  return `${year}-${month}-${day}T${hourStr}:${minute}:${second}${offset}`;
 }
 
 
