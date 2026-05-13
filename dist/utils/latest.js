@@ -6,11 +6,25 @@ import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
 import { formatDateTimeWithTimezone, ensureTrailingSlash, joinUrl } from './utils';
 export async function getSignatureForAsset(repoInfo, assetName, assets) {
-    const sigAsset = assets.find(a => a.name === assetName + '.sig');
+    const lowerAssetName = assetName.toLowerCase();
+    const sigAsset = assets.find(a => a.name.toLowerCase() === lowerAssetName + '.sig');
     let fallbackSigAsset = null;
     if (!sigAsset) {
-        fallbackSigAsset = assets.find(a => a.name.toLowerCase().endsWith('.sig'));
-        if (fallbackSigAsset) {
+        const platformKeys = getPlatformKeys(assetName);
+        const allSigAssets = assets.filter(a => a.name.toLowerCase().endsWith('.sig'));
+        if (allSigAssets.length > 0) {
+            for (const sig of allSigAssets) {
+                const sigBaseName = sig.name.substring(0, sig.name.length - 4);
+                const sigPlatformKeys = getPlatformKeys(sigBaseName);
+                const hasMatchingPlatform = platformKeys.some(pk => sigPlatformKeys.some(spk => pk.startsWith(spk.split('-')[0]) || spk.startsWith(pk.split('-')[0])));
+                if (hasMatchingPlatform) {
+                    fallbackSigAsset = sig;
+                    break;
+                }
+            }
+            if (!fallbackSigAsset) {
+                fallbackSigAsset = allSigAssets[0];
+            }
             console.log(`No exact signature found for ${assetName}, using fallback: ${fallbackSigAsset.name}`);
         }
     }
@@ -18,12 +32,16 @@ export async function getSignatureForAsset(repoInfo, assetName, assets) {
     if (targetAsset) {
         try {
             const signatureContent = await getReleaseAssetContent(repoInfo, targetAsset);
-            console.log(`Loaded signature for ${assetName}: ${signatureContent.substring(0, 50)}...`);
+            console.log(`Loaded signature for ${assetName} (${targetAsset.name}):`);
+            console.log(signatureContent);
             return signatureContent.trim();
         }
         catch (error) {
             console.error(`Failed to load signature for ${targetAsset.name}:`, error);
         }
+    }
+    else {
+        console.log(`No signature file found for ${assetName}`);
     }
     return '';
 }

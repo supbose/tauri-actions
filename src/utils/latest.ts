@@ -15,14 +15,43 @@ import { formatDateTimeWithTimezone, ensureTrailingSlash, joinUrl } from './util
  * @returns Signature content or empty string
  */
 export async function getSignatureForAsset(repoInfo: any, assetName: string, assets: ReleaseAsset[]): Promise<string> {
-  // First try to find exact matching signature file
-  const sigAsset = assets.find(a => a.name === assetName + '.sig');
+  const lowerAssetName = assetName.toLowerCase();
   
-  // If not found, try to find any .sig file as fallback
+  // 1. 精确匹配（不区分大小写）
+  const sigAsset = assets.find(a => a.name.toLowerCase() === lowerAssetName + '.sig');
+  
+  // 2. 如果没找到，尝试查找同平台的签名作为备用
   let fallbackSigAsset = null;
   if (!sigAsset) {
-    fallbackSigAsset = assets.find(a => a.name.toLowerCase().endsWith('.sig'));
-    if (fallbackSigAsset) {
+    // 获取当前文件的平台信息
+    const platformKeys = getPlatformKeys(assetName);
+    
+    // 查找所有 .sig 文件
+    const allSigAssets = assets.filter(a => a.name.toLowerCase().endsWith('.sig'));
+    
+    if (allSigAssets.length > 0) {
+      // 优先查找相同平台的签名
+      for (const sig of allSigAssets) {
+        // 移除 .sig 后缀获取原始文件名
+        const sigBaseName = sig.name.substring(0, sig.name.length - 4);
+        const sigPlatformKeys = getPlatformKeys(sigBaseName);
+        
+        // 检查是否有共同的平台
+        const hasMatchingPlatform = platformKeys.some(pk => 
+          sigPlatformKeys.some(spk => pk.startsWith(spk.split('-')[0]) || spk.startsWith(pk.split('-')[0]))
+        );
+        
+        if (hasMatchingPlatform) {
+          fallbackSigAsset = sig;
+          break;
+        }
+      }
+      
+      // 如果没有平台匹配，使用第一个找到的签名作为最后的备用
+      if (!fallbackSigAsset) {
+        fallbackSigAsset = allSigAssets[0];
+      }
+      
       console.log(`No exact signature found for ${assetName}, using fallback: ${fallbackSigAsset.name}`);
     }
   }
@@ -32,11 +61,14 @@ export async function getSignatureForAsset(repoInfo: any, assetName: string, ass
   if (targetAsset) {
     try {
       const signatureContent = await getReleaseAssetContent(repoInfo, targetAsset);
-      console.log(`Loaded signature for ${assetName}: ${signatureContent.substring(0, 50)}...`);
+      console.log(`Loaded signature for ${assetName} (${targetAsset.name}):`);
+      console.log(signatureContent);
       return signatureContent.trim();
     } catch (error) {
       console.error(`Failed to load signature for ${targetAsset.name}:`, error);
     }
+  } else {
+    console.log(`No signature file found for ${assetName}`);
   }
   return '';
 }
