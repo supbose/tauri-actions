@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 export function pad(n, length = 2) {
     return n.toString().padStart(length, '0');
 }
@@ -76,6 +78,26 @@ export function formatUTCDate(date) {
 }
 export function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+export function getLocalSignature(localUploadDir, fileName) {
+    if (!localUploadDir || !fs.existsSync(localUploadDir)) {
+        return '';
+    }
+    const sigFilePath = path.join(localUploadDir, fileName + '.sig');
+    if (fs.existsSync(sigFilePath)) {
+        const signature = fs.readFileSync(sigFilePath, 'utf-8').trim();
+        console.log(`Loaded local signature for ${fileName}: ${signature.substring(0, 50)}...`);
+        return signature;
+    }
+    const allSigFiles = fs.readdirSync(localUploadDir).filter(f => f.toLowerCase().endsWith('.sig'));
+    if (allSigFiles.length > 0) {
+        const fallbackSigFile = path.join(localUploadDir, allSigFiles[0]);
+        const signature = fs.readFileSync(fallbackSigFile, 'utf-8').trim();
+        console.log(`No exact signature found for ${fileName}, using fallback: ${allSigFiles[0]}`);
+        return signature;
+    }
+    console.log(`No local signature found for ${fileName}: ${sigFilePath}`);
+    return '';
 }
 export function safeJsonParse(str, fallback) {
     try {

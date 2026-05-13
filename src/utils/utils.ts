@@ -3,6 +3,9 @@
  * Common utilities used across the project
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 /**
  * Pad a number with leading zeros
  * @param n - Number to pad
@@ -161,6 +164,39 @@ export function formatUTCDate(date: Date | number): string {
  */
 export function wait(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Get local signature for a file from local directory
+ * @param localUploadDir - Local directory containing signature files
+ * @param fileName - File name to find signature for
+ * @returns Signature content or empty string
+ */
+export function getLocalSignature(localUploadDir: string | undefined, fileName: string): string {
+  if (!localUploadDir || !fs.existsSync(localUploadDir)) {
+    return '';
+  }
+
+  const sigFilePath = path.join(localUploadDir, fileName + '.sig');
+  
+  // 优先精确匹配
+  if (fs.existsSync(sigFilePath)) {
+    const signature = fs.readFileSync(sigFilePath, 'utf-8').trim();
+    console.log(`Loaded local signature for ${fileName}: ${signature.substring(0, 50)}...`);
+    return signature;
+  }
+  
+  // 精确匹配没找到，尝试查找任意 .sig 文件
+  const allSigFiles = fs.readdirSync(localUploadDir).filter(f => f.toLowerCase().endsWith('.sig'));
+  if (allSigFiles.length > 0) {
+    const fallbackSigFile = path.join(localUploadDir, allSigFiles[0]);
+    const signature = fs.readFileSync(fallbackSigFile, 'utf-8').trim();
+    console.log(`No exact signature found for ${fileName}, using fallback: ${allSigFiles[0]}`);
+    return signature;
+  }
+  
+  console.log(`No local signature found for ${fileName}: ${sigFilePath}`);
+  return '';
 }
 
 /**

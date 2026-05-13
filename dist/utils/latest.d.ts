@@ -1,5 +1,4 @@
-import { Release, ReleaseAsset, FtpConfig } from '../types';
-export declare function getSignatureForAsset(repoInfo: any, assetName: string, assets: ReleaseAsset[]): Promise<string>;
+import { Release, FtpConfig } from '../types';
 export declare function buildPlatformsFromAssets(release: Release, cdnBase: string, targetVersion: string, localUploadDir?: string, repoInfo?: any, serverDir?: string): Promise<{
     [key: string]: {
         url: string;

@@ -1,34 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { getPlatformKeys } from './platform';
-import { getReleaseAssetContent, getGitCommitMessage } from './github';
+import { getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
-import { formatDateTimeWithTimezone, ensureTrailingSlash, joinUrl } from './utils';
-export async function getSignatureForAsset(repoInfo, assetName, assets) {
-    const allSigAssets = assets.filter(a => a.name.toLowerCase().endsWith('.sig'));
-    if (allSigAssets.length > 0) {
-        const lowerAssetName = assetName.toLowerCase();
-        const sigAsset = allSigAssets.find(a => a.name.toLowerCase() === lowerAssetName + '.sig');
-        const targetAsset = sigAsset || allSigAssets[0];
-        if (!sigAsset) {
-            console.log(`No exact signature found for ${assetName}, using: ${targetAsset.name}`);
-        }
-        try {
-            const signatureContent = await getReleaseAssetContent(repoInfo, targetAsset);
-            console.log(`Loaded signature for ${assetName} (${targetAsset.name}):`);
-            console.log(signatureContent);
-            return signatureContent.trim();
-        }
-        catch (error) {
-            console.error(`Failed to load signature for ${targetAsset.name}:`, error);
-        }
-    }
-    else {
-        console.log(`No signature file found for ${assetName}`);
-    }
-    return '111';
-}
+import { formatDateTimeWithTimezone, ensureTrailingSlash, joinUrl, getLocalSignature } from './utils';
 function getOSDirectory(platformKey) {
     if (platformKey.startsWith('windows')) {
         return 'windows';
@@ -51,10 +27,7 @@ export async function buildPlatformsFromAssets(release, cdnBase, targetVersion, 
                 continue;
             const platformKeys = getPlatformKeys(fileName);
             if (platformKeys.length > 0) {
-                const sigFilePath = path.join(localUploadDir, fileName + '.sig');
-                const signature = fs.existsSync(sigFilePath)
-                    ? fs.readFileSync(sigFilePath, 'utf-8').trim()
-                    : '';
+                const signature = getLocalSignature(localUploadDir, fileName);
                 for (const platformKey of platformKeys) {
                     const osDir = getOSDirectory(platformKey);
                     platforms[platformKey] = {
@@ -62,12 +35,6 @@ export async function buildPlatformsFromAssets(release, cdnBase, targetVersion, 
                         signature: signature
                     };
                     console.log(`Added local file: ${fileName} -> ${platformKey}`);
-                    if (signature) {
-                        console.log(`  - Loaded signature (${signature.length} chars)`);
-                    }
-                    else {
-                        console.log(`  - No signature file found: ${sigFilePath}`);
-                    }
                 }
             }
         }
@@ -86,7 +53,7 @@ export async function buildPlatformsFromAssets(release, cdnBase, targetVersion, 
             continue;
         const platformKeys = getPlatformKeys(asset.name);
         if (platformKeys.length > 0) {
-            const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
+            const signature = getLocalSignature(localUploadDir, asset.name);
             for (const platformKey of platformKeys) {
                 const osDir = getOSDirectory(platformKey);
                 platforms[platformKey] = {

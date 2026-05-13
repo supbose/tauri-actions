@@ -6,6 +6,7 @@ export declare function removeTrailingSlash(url: string): string;
 export declare function formatDateTimeWithTimezone(date: Date | number, timezone: string): string;
 export declare function formatUTCDate(date: Date | number): string;
 export declare function wait(ms: number): Promise<void>;
+export declare function getLocalSignature(localUploadDir: string | undefined, fileName: string): string;
 export declare function safeJsonParse<T = any>(str: string, fallback: T): T;
 export declare function safeJsonStringify(obj: any, fallback?: string, space?: number | string): string;
 export declare function truncate(str: string, maxLength: number, suffix?: string): string;
