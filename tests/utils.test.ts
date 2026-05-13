@@ -3,6 +3,8 @@ import {
   pad,
   ensureTrailingSlash,
   removeTrailingSlash,
+  formatUrl,
+  joinUrl,
   formatDateTimeWithTimezone,
   formatUTCDate,
   safeJsonParse,
@@ -66,6 +68,85 @@ describe('Utils Module Tests', () => {
 
     it('should handle empty strings', () => {
       expect(removeTrailingSlash('')).toBe('');
+    });
+  });
+
+  describe('joinUrl', () => {
+    it('should join URL segments correctly', () => {
+      expect(joinUrl('https://cdn.example.com/', 'download', 'windows', 'v1.0.0', 'app.exe'))
+        .toBe('https://cdn.example.com/download/windows/v1.0.0/app.exe');
+    });
+
+    it('should handle trailing and leading slashes', () => {
+      expect(joinUrl('https://cdn.com/', '/download/', '/windows/'))
+        .toBe('https://cdn.com/download/windows');
+    });
+
+    it('should preserve protocol double slash', () => {
+      expect(joinUrl('https://example.com', 'path', 'to', 'file'))
+        .toBe('https://example.com/path/to/file');
+    });
+
+    it('should handle empty segments', () => {
+      expect(joinUrl('https://cdn.com', '', 'download', '', 'windows'))
+        .toBe('https://cdn.com/download/windows');
+    });
+
+    it('should handle empty input', () => {
+      expect(joinUrl()).toBe('');
+      expect(joinUrl('')).toBe('');
+      expect(joinUrl('', '')).toBe('');
+    });
+
+    it('should handle single segment', () => {
+      expect(joinUrl('https://example.com/')).toBe('https://example.com');
+      expect(joinUrl('/path/to/dir/')).toBe('/path/to/dir');
+    });
+
+    it('should handle Chinese file names', () => {
+      expect(joinUrl('https://cdn.example.com/', 'download', 'windows', 'v0.0.5', '青数客户端_0.0.5_x64-setup.exe'))
+        .toBe('https://cdn.example.com/download/windows/v0.0.5/青数客户端_0.0.5_x64-setup.exe');
+    });
+
+    it('should handle serverDir with trailing slash', () => {
+      expect(joinUrl('https://cdn2.ali.yiruan.wang/', '/download/', 'windows', 'v0.0.5', '青数客户端_0.0.5_x64-setup.exe'))
+        .toBe('https://cdn2.ali.yiruan.wang/download/windows/v0.0.5/青数客户端_0.0.5_x64-setup.exe');
+    });
+  });
+
+  describe('formatUrl', () => {
+    it('should remove double slashes', () => {
+      expect(formatUrl('https://cdn.example.com//download//windows/v1.0.0//'))
+        .toBe('https://cdn.example.com/download/windows/v1.0.0/');
+    });
+
+    it('should preserve protocol double slash', () => {
+      expect(formatUrl('https://example.com//path//to//file'))
+        .toBe('https://example.com/path/to/file');
+    });
+
+    it('should handle http protocol', () => {
+      expect(formatUrl('http://cdn.com//download//app.exe'))
+        .toBe('http://cdn.com/download/app.exe');
+    });
+
+    it('should handle paths without protocol', () => {
+      expect(formatUrl('//download//windows//'))
+        .toBe('/download/windows/');
+    });
+
+    it('should handle single slashes', () => {
+      expect(formatUrl('https://example.com/path/to/file'))
+        .toBe('https://example.com/path/to/file');
+    });
+
+    it('should handle empty string', () => {
+      expect(formatUrl('')).toBe('');
+    });
+
+    it('should handle URL with Chinese characters', () => {
+      expect(formatUrl('https://cdn2.ali.yiruan.wang//download//windows//v0.0.5//青数客户端_0.0.5_x64-setup.exe'))
+        .toBe('https://cdn2.ali.yiruan.wang/download/windows/v0.0.5/青数客户端_0.0.5_x64-setup.exe');
     });
   });
 

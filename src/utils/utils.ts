@@ -24,6 +24,76 @@ export function ensureTrailingSlash(url: string): string {
 }
 
 /**
+ * Join multiple URL segments into a properly formatted URL
+ * Handles trailing/leading slashes to avoid double slashes
+ * @param segments - URL segments to join
+ * @returns Formatted URL with proper slashes
+ * 
+ * @example
+ * joinUrl('https://cdn.example.com/', 'download', 'windows', 'v1.0.0', 'app.exe')
+ * // Returns: 'https://cdn.example.com/download/windows/v1.0.0/app.exe'
+ * 
+ * @example
+ * joinUrl('https://cdn.com/', '/download/', '/windows/')
+ * // Returns: 'https://cdn.com/download/windows/'
+ */
+export function joinUrl(...segments: string[]): string {
+  if (segments.length === 0) return '';
+  
+  // Filter out empty segments
+  const validSegments = segments.filter(s => s && s.trim() !== '');
+  
+  if (validSegments.length === 0) return '';
+  
+  // Handle the first segment (may be a full URL with protocol)
+  let result = validSegments[0];
+  
+  // Remove trailing slash from first segment (unless it's just "/" or a protocol-only URL)
+  if (result.length > 1 && result.endsWith('/')) {
+    result = result.slice(0, -1);
+  }
+  
+  // Process remaining segments
+  for (let i = 1; i < validSegments.length; i++) {
+    let segment = validSegments[i];
+    
+    // Remove leading and trailing slashes from current segment
+    segment = segment.replace(/^\/+/, '').replace(/\/+$/, '');
+    
+    if (segment) {
+      result += '/' + segment;
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Format and normalize a URL path
+ * Ensures proper slashes and removes duplicates
+ * @param url - URL to format
+ * @returns Normalized URL
+ * 
+ * @example
+ * formatUrl('https://cdn.example.com//download//windows/v1.0.0//')
+ * // Returns: 'https://cdn.example.com/download/windows/v1.0.0/'
+ */
+export function formatUrl(url: string): string {
+  if (!url) return url;
+  
+  // Replace multiple consecutive slashes with single slash
+  // But preserve the double slash in protocol (e.g., https://)
+  const parts = url.split('://');
+  if (parts.length === 2) {
+    const protocol = parts[0];
+    const rest = parts[1].replace(/\/{2,}/g, '/');
+    return `${protocol}://${rest}`;
+  }
+  
+  return url.replace(/\/{2,}/g, '/');
+}
+
+/**
  * Remove trailing slash from URL/path
  * @param url - URL or path to normalize
  * @returns Normalized URL/path

@@ -6,6 +6,36 @@ export function ensureTrailingSlash(url) {
         return url;
     return url.endsWith('/') ? url : `${url}/`;
 }
+export function joinUrl(...segments) {
+    if (segments.length === 0)
+        return '';
+    const validSegments = segments.filter(s => s && s.trim() !== '');
+    if (validSegments.length === 0)
+        return '';
+    let result = validSegments[0];
+    if (result.length > 1 && result.endsWith('/')) {
+        result = result.slice(0, -1);
+    }
+    for (let i = 1; i < validSegments.length; i++) {
+        let segment = validSegments[i];
+        segment = segment.replace(/^\/+/, '').replace(/\/+$/, '');
+        if (segment) {
+            result += '/' + segment;
+        }
+    }
+    return result;
+}
+export function formatUrl(url) {
+    if (!url)
+        return url;
+    const parts = url.split('://');
+    if (parts.length === 2) {
+        const protocol = parts[0];
+        const rest = parts[1].replace(/\/{2,}/g, '/');
+        return `${protocol}://${rest}`;
+    }
+    return url.replace(/\/{2,}/g, '/');
+}
 export function removeTrailingSlash(url) {
     if (!url)
         return url;

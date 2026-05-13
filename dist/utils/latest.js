@@ -4,7 +4,7 @@ import { getPlatformKeys } from './platform';
 import { getReleaseAssetContent, getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
-import { formatDateTimeWithTimezone, ensureTrailingSlash } from './utils';
+import { formatDateTimeWithTimezone, ensureTrailingSlash, joinUrl } from './utils';
 export async function getSignatureForAsset(repoInfo, assetName, assets) {
     const sigAsset = assets.find(a => a.name === assetName + '.sig');
     if (sigAsset) {
@@ -47,10 +47,8 @@ export async function buildPlatformsFromAssets(release, cdnBase, targetVersion, 
                     : '';
                 for (const platformKey of platformKeys) {
                     const osDir = getOSDirectory(platformKey);
-                    const serverPath = serverDir ? serverDir.replace(/\/$/, '') : '';
-                    const basePath = serverPath ? `${serverPath}/${osDir}/v${targetVersion}/` : `${osDir}/v${targetVersion}/`;
                     platforms[platformKey] = {
-                        url: `${cdnBase}${basePath}${fileName}`,
+                        url: joinUrl(cdnBase, serverDir, osDir, `v${targetVersion}`, fileName),
                         signature: signature
                     };
                     console.log(`Added local file: ${fileName} -> ${platformKey}`);
@@ -73,12 +71,10 @@ export async function buildPlatformsFromAssets(release, cdnBase, targetVersion, 
         const platformKeys = getPlatformKeys(asset.name);
         if (platformKeys.length > 0) {
             const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
-            const serverPath = serverDir ? serverDir.replace(/\/$/, '') : '';
             for (const platformKey of platformKeys) {
                 const osDir = getOSDirectory(platformKey);
-                const basePath = serverPath ? `${serverPath}/${osDir}/v${targetVersion}/` : `${osDir}/v${targetVersion}/`;
                 platforms[platformKey] = {
-                    url: `${cdnBase}${basePath}${asset.name}`,
+                    url: joinUrl(cdnBase, serverDir, osDir, `v${targetVersion}`, asset.name),
                     signature: signature
                 };
             }

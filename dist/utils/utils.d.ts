@@ -1,5 +1,7 @@
 export declare function pad(n: number, length?: number): string;
 export declare function ensureTrailingSlash(url: string): string;
+export declare function joinUrl(...segments: string[]): string;
+export declare function formatUrl(url: string): string;
 export declare function removeTrailingSlash(url: string): string;
 export declare function formatDateTimeWithTimezone(date: Date | number, timezone: string): string;
 export declare function formatUTCDate(date: Date | number): string;
