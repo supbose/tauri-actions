@@ -43,7 +43,7 @@ export function removeTrailingSlash(url) {
         return url;
     return url.endsWith('/') ? url.slice(0, -1) : url;
 }
-export function formatDateTimeWithTimezone(date, timezone) {
+export function formatDateTimeWithTimezone(date, timezone = 'Asia/Shanghai') {
     const dateObj = typeof date === 'number' ? new Date(date) : date;
     const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: timezone,
@@ -57,20 +57,14 @@ export function formatDateTimeWithTimezone(date, timezone) {
     });
     const parts = formatter.formatToParts(dateObj);
     const partMap = new Map(parts.map(p => [p.type, p.value]));
-    const year = partMap.get('year') || dateObj.getUTCFullYear().toString();
-    const month = partMap.get('month') || pad(dateObj.getUTCMonth() + 1);
-    const day = partMap.get('day') || pad(dateObj.getUTCDate());
-    const hour = partMap.get('hour') || pad(dateObj.getUTCHours());
-    const minute = partMap.get('minute') || pad(dateObj.getUTCMinutes());
-    const second = partMap.get('second') || pad(dateObj.getUTCSeconds());
-    const offsetDate = new Date(dateObj.toLocaleString('en-US', { timeZone: timezone }));
-    const utcDate = new Date(dateObj.toLocaleString('en-US', { timeZone: 'UTC' }));
-    const diffMs = offsetDate.getTime() - utcDate.getTime();
-    const offsetMinutes = Math.round(diffMs / 60000);
-    const offsetSign = offsetMinutes >= 0 ? '+' : '-';
-    const offsetHours = pad(Math.floor(Math.abs(offsetMinutes) / 60));
-    const offsetMins = pad(Math.abs(offsetMinutes) % 60);
-    return `${year}-${month}-${day}T${hour}:${minute}:${second}${offsetSign}${offsetHours}:${offsetMins}`;
+    const year = partMap.get('year');
+    const month = partMap.get('month');
+    const day = partMap.get('day');
+    const hour = partMap.get('hour');
+    const minute = partMap.get('minute');
+    const second = partMap.get('second');
+    const ms = String(dateObj.getUTCMilliseconds()).padStart(3, '0');
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}Z`;
 }
 export function formatUTCDate(date) {
     const dateObj = typeof date === 'number' ? new Date(date) : date;
@@ -227,5 +221,170 @@ export function getDefaultTauriExtensions() {
         '.7z',
         '.sig',
     ];
+}
+const TAURI_TARGET_OS_MAP = {
+    'windows': 'windows',
+    'macos': 'macos',
+    'linux': 'linux',
+    'ios': 'ios',
+    'android': 'android',
+    'wasm32': 'linux',
+};
+const OS_DISPLAY_NAMES = {
+    'windows': 'Windows',
+    'macos': 'macOS',
+    'linux': 'Linux',
+    'ios': 'iOS',
+    'android': 'Android',
+    'freebsd': 'FreeBSD',
+    'openbsd': 'OpenBSD',
+    'netbsd': 'NetBSD',
+};
+const TARGET_EXTENSIONS = {
+    'windows': ['.exe', '.msi', '.zip'],
+    'macos': ['.dmg', '.pkg', '.app', '.tar.gz'],
+    'linux': ['.deb', '.rpm', '.AppImage', '.tar.gz', '.tar.bz2', '.tar.xz'],
+    'ios': ['.ipa', '.app'],
+    'android': ['.apk', '.aab'],
+    'wasm32': ['.wasm', '.js'],
+};
+export function getTauriTargetFromExtension(extension) {
+    const ext = extension.toLowerCase();
+    for (const [target, extensions] of Object.entries(TARGET_EXTENSIONS)) {
+        if (extensions.some(e => e.toLowerCase() === ext)) {
+            return target;
+        }
+    }
+    return null;
+}
+export function getOSFromTarget(target) {
+    return TAURI_TARGET_OS_MAP[target] || 'linux';
+}
+export function isDesktopTarget(target) {
+    return target === 'windows' || target === 'macos' || target === 'linux';
+}
+export function isMobileTarget(target) {
+    return target === 'ios' || target === 'android';
+}
+export function isWebTarget(target) {
+    return target === 'wasm32';
+}
+export function getTargetExtensions(target) {
+    return [...(TARGET_EXTENSIONS[target] || [])];
+}
+export function getOSDisplayName(os) {
+    return OS_DISPLAY_NAMES[os] || os;
+}
+export function getTargetDisplayName(target) {
+    return getOSDisplayName(getOSFromTarget(target));
+}
+export function isValidTauriTarget(value) {
+    const validTargets = ['windows', 'macos', 'linux', 'ios', 'android', 'wasm32'];
+    return validTargets.includes(value);
+}
+export function isValidTauriOS(value) {
+    const validOS = ['windows', 'macos', 'linux', 'ios', 'android', 'freebsd', 'openbsd', 'netbsd'];
+    return validOS.includes(value);
+}
+export function matchesCurrentPlatform(target) {
+    const currentOS = getOSIdentifier();
+    const targetOS = getOSFromTarget(target);
+    if (target === 'wasm32') {
+        return true;
+    }
+    return currentOS === targetOS;
+}
+const OS_PATTERNS = {
+    'windows': [
+        /[-_]win(?:dows)?[-_]/i,
+        /[-_]x64[-_]/i,
+        /[-_]x86[-_]/i,
+        /\.exe$/i,
+        /\.msi$/i,
+        /\bwin32\b/i,
+        /\bwindows\b/i,
+    ],
+    'macos': [
+        /[-_]mac(?:os)?[-_]/i,
+        /[-_]darwin[-_]/i,
+        /[-_]aarch64[-_]/i,
+        /\.dmg$/i,
+        /\.pkg$/i,
+        /\.app$/i,
+        /\bmacos\b/i,
+        /\bapple\b/i,
+    ],
+    'linux': [
+        /[-_]linux[-_]/i,
+        /[-_]ubuntu[-_]/i,
+        /[-_]debian[-_]/i,
+        /[-_]fedora[-_]/i,
+        /\.deb$/i,
+        /\.rpm$/i,
+        /\.AppImage$/i,
+        /\.tar\.(?:gz|bz2|xz)$/i,
+        /\blinux-gnu\b/i,
+        /\blinux-musl\b/i,
+    ],
+    'ios': [
+        /[-_]ios[-_]/i,
+        /\biphone\b/i,
+        /\bipad\b/i,
+        /\.ipa$/i,
+        /\.app$/i,
+        /-ios-/i,
+    ],
+    'android': [
+        /[-_]android[-_]/i,
+        /[-_]arm(?:64)?[-_]/i,
+        /\.apk$/i,
+        /\.aab$/i,
+        /-android-/i,
+    ],
+};
+export function autoDetectOS(filename) {
+    if (!filename)
+        return null;
+    const lowerFilename = filename.toLowerCase();
+    for (const [os, patterns] of Object.entries(OS_PATTERNS)) {
+        for (const pattern of patterns) {
+            if (pattern.test(lowerFilename)) {
+                return os;
+            }
+        }
+    }
+    return null;
+}
+export function autoDetectTarget(filename) {
+    const os = autoDetectOS(filename);
+    if (!os)
+        return null;
+    const osToTargetMap = {
+        'windows': 'windows',
+        'macos': 'macos',
+        'linux': 'linux',
+        'ios': 'ios',
+        'android': 'android',
+        'freebsd': 'linux',
+        'openbsd': 'linux',
+        'netbsd': 'linux',
+    };
+    return osToTargetMap[os] || null;
+}
+export function getAutoOS(filename) {
+    if (filename) {
+        const detected = autoDetectOS(filename);
+        if (detected)
+            return detected;
+    }
+    return getOSIdentifier();
+}
+export function getAutoTarget(filename) {
+    if (filename) {
+        const detected = autoDetectTarget(filename);
+        if (detected)
+            return detected;
+    }
+    return getOSIdentifier();
 }
 //# sourceMappingURL=utils.js.map

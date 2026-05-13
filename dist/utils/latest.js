@@ -4,7 +4,7 @@ import { getPlatformKeys } from './platform';
 import { getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
-import { formatDateTimeWithTimezone, getOSIdentifier, ensureTrailingSlash, joinUrl, getLocalSignature } from './utils';
+import { formatDateTimeWithTimezone, getAutoOS, ensureTrailingSlash, joinUrl, getLocalSignature } from './utils';
 function getOSDirectory(platformKey) {
     if (platformKey.startsWith('windows')) {
         return 'windows';
@@ -91,7 +91,7 @@ export async function updateAndUploadLatestJson(release, targetVersion, localUpl
         if (ftpConfig) {
             console.log(`Uploading latest.json to FTP server: ${ftpConfig.host}`);
             console.log(`Server directory: updater/`);
-            const os = getOSIdentifier();
+            const os = getAutoOS();
             const updaterFtpConfig = {
                 ...ftpConfig,
                 serverDir: `updater/${os}/`

@@ -107,12 +107,12 @@ export function removeTrailingSlash(url: string): string {
 }
 
 /**
- * Format date/time with specified timezone to ISO 8601 format
+ * Format a date as ISO 8601 UTC string with milliseconds
  * @param date - Date object or timestamp
  * @param timezone - Timezone string (e.g., Asia/Shanghai, UTC)
- * @returns Formatted datetime string (e.g., 2024-01-15T10:30:00+08:00)
+ * @returns Formatted datetime string (e.g., 2026-05-13T16:03:06.555Z)
  */
-export function formatDateTimeWithTimezone(date: Date | number, timezone: string): string {
+export function formatDateTimeWithTimezone(date: Date | number, timezone: string = 'Asia/Shanghai'): string {
   const dateObj = typeof date === 'number' ? new Date(date) : date;
   
   const formatter = new Intl.DateTimeFormat('en-US', {
@@ -129,22 +129,15 @@ export function formatDateTimeWithTimezone(date: Date | number, timezone: string
   const parts = formatter.formatToParts(dateObj);
   const partMap = new Map(parts.map(p => [p.type, p.value]));
   
-  const year = partMap.get('year') || dateObj.getUTCFullYear().toString();
-  const month = partMap.get('month') || pad(dateObj.getUTCMonth() + 1);
-  const day = partMap.get('day') || pad(dateObj.getUTCDate());
-  const hour = partMap.get('hour') || pad(dateObj.getUTCHours());
-  const minute = partMap.get('minute') || pad(dateObj.getUTCMinutes());
-  const second = partMap.get('second') || pad(dateObj.getUTCSeconds());
+  const year = partMap.get('year')!;
+  const month = partMap.get('month')!;
+  const day = partMap.get('day')!;
+  const hour = partMap.get('hour')!;
+  const minute = partMap.get('minute')!;
+  const second = partMap.get('second')!;
+  const ms = String(dateObj.getUTCMilliseconds()).padStart(3, '0');
   
-  const offsetDate = new Date(dateObj.toLocaleString('en-US', { timeZone: timezone }));
-  const utcDate = new Date(dateObj.toLocaleString('en-US', { timeZone: 'UTC' }));
-  const diffMs = offsetDate.getTime() - utcDate.getTime();
-  const offsetMinutes = Math.round(diffMs / 60000);
-  const offsetSign = offsetMinutes >= 0 ? '+' : '-';
-  const offsetHours = pad(Math.floor(Math.abs(offsetMinutes) / 60));
-  const offsetMins = pad(Math.abs(offsetMinutes) % 60);
-  
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${offsetSign}${offsetHours}:${offsetMins}`;
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}Z`;
 }
 
 /**

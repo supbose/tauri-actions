@@ -130,7 +130,6 @@ export async function updateAndUploadLatestJson(
     const serverDir = ftpConfig?.serverDir || '';
     const platforms = await buildPlatformsFromAssets(release, normalizedCdnBase, targetVersion, localUploadDir, repoInfo, serverDir);
     
-    // Generate pub_date with custom timezone
     console.log(`Using timezone: ${timezone}`);
     const pubDate = formatDateTimeWithTimezone(new Date(), timezone);
     

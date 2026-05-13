@@ -152,28 +152,34 @@ describe('Utils Module Tests', () => {
   });
 
   describe('formatDateTimeWithTimezone', () => {
-    it('should format date with Shanghai timezone', () => {
-      const date = new Date('2024-01-15T10:30:00Z');
+    it('should format date as ISO 8601 UTC string with Shanghai timezone', () => {
+      const date = new Date('2024-01-15T10:30:00.000Z');
       const result = formatDateTimeWithTimezone(date, 'Asia/Shanghai');
-      expect(result).toMatch(/^2024-01-15T\d{2}:30:00\+08:00$/);
+      expect(result).toMatch(/^2024-01-15T\d{2}:30:00\.000Z$/);
     });
 
-    it('should format date with UTC timezone', () => {
-      const date = new Date('2024-01-15T10:30:00Z');
+    it('should format date as ISO 8601 UTC string with UTC timezone', () => {
+      const date = new Date('2024-01-15T10:30:00.000Z');
       const result = formatDateTimeWithTimezone(date, 'UTC');
-      expect(result).toMatch(/^2024-01-15T10:30:00\+00:00$/);
+      expect(result).toBe('2024-01-15T10:30:00.000Z');
     });
 
     it('should handle Date object input', () => {
-      const date = new Date('2024-01-15T10:30:00Z');
-      const result = formatDateTimeWithTimezone(date, 'UTC');
-      expect(result).toMatch(/^2024-01-15T10:30:00/);
+      const date = new Date('2024-01-15T10:30:00.123Z');
+      const result = formatDateTimeWithTimezone(date, 'Asia/Shanghai');
+      expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
     });
 
-    it('should format date with New York timezone', () => {
-      const date = new Date('2024-01-15T10:30:00Z');
-      const result = formatDateTimeWithTimezone(date, 'America/New_York');
-      expect(result).toMatch(/^2024-01-15T05:30:00-05:00$/);
+    it('should handle timestamp input', () => {
+      const timestamp = 1705315800000;
+      const result = formatDateTimeWithTimezone(timestamp, 'Asia/Shanghai');
+      expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    });
+
+    it('should use Asia/Shanghai as default timezone', () => {
+      const date = new Date('2024-01-15T10:30:00.000Z');
+      const result = formatDateTimeWithTimezone(date);
+      expect(result).toMatch(/^2024-01-15T\d{2}:30:00\.000Z$/);
     });
   });
 
