@@ -47,7 +47,8 @@ export async function buildPlatformsFromAssets(release, cdnBase, targetVersion, 
                     : '';
                 for (const platformKey of platformKeys) {
                     const osDir = getOSDirectory(platformKey);
-                    const basePath = serverDir ? `${serverDir}${osDir}/v${targetVersion}/` : `${osDir}/v${targetVersion}/`;
+                    const serverPath = serverDir ? serverDir.replace(/\/$/, '') : '';
+                    const basePath = serverPath ? `${serverPath}/${osDir}/v${targetVersion}/` : `${osDir}/v${targetVersion}/`;
                     platforms[platformKey] = {
                         url: `${cdnBase}${basePath}${fileName}`,
                         signature: signature
@@ -72,9 +73,10 @@ export async function buildPlatformsFromAssets(release, cdnBase, targetVersion, 
         const platformKeys = getPlatformKeys(asset.name);
         if (platformKeys.length > 0) {
             const signature = await getSignatureForAsset(repoInfo, asset.name, release.assets);
+            const serverPath = serverDir ? serverDir.replace(/\/$/, '') : '';
             for (const platformKey of platformKeys) {
                 const osDir = getOSDirectory(platformKey);
-                const basePath = serverDir ? `${serverDir}${osDir}/v${targetVersion}/` : `${osDir}/v${targetVersion}/`;
+                const basePath = serverPath ? `${serverPath}/${osDir}/v${targetVersion}/` : `${osDir}/v${targetVersion}/`;
                 platforms[platformKey] = {
                     url: `${cdnBase}${basePath}${asset.name}`,
                     signature: signature
