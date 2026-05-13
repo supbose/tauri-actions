@@ -10,6 +10,7 @@ export interface ActionInputs {
     uploadLatest: 'disabled' | 'ci' | 'use';
     githubToken: string;
     cdnBaseUrl: string;
+    timezone: string;
 }
 export interface FtpConfig {
     host: string;

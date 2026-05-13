@@ -108,6 +108,7 @@ export async function buildPlatformsFromAssets(
  * @param repoInfo - Repository info
  * @param cdnBase - CDN base URL
  * @param ftpConfig - FTP configuration for uploading latest.json to updater directory
+ * @param timezone - Timezone for pub_date (default: Asia/Shanghai)
  */
 export async function updateAndUploadLatestJson(
   release: Release,
@@ -115,7 +116,8 @@ export async function updateAndUploadLatestJson(
   localUploadDir: string | undefined,
   repoInfo: any,
   cdnBase: string,
-  ftpConfig: FtpConfig | undefined
+  ftpConfig: FtpConfig | undefined,
+  timezone: string = 'Asia/Shanghai'
 ): Promise<void> {
   try {
     console.log('Updating latest.json...');
@@ -127,10 +129,35 @@ export async function updateAndUploadLatestJson(
     const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
     const platforms = await buildPlatformsFromAssets(release, downloadUrl, localUploadDir, repoInfo);
     
+    // Generate pub_date with custom timezone
+    console.log(`Using timezone: ${timezone}`);
+    const timeStr = new Date().toLocaleString('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    // Convert to ISO format: YYYY-MM-DDTHH:mm:ss+TZ
+    const [datePart, timePart] = timeStr.split(', ');
+    const [month, day, year] = datePart.split('/');
+    
+    // Calculate timezone offset
+    const offset = -new Date().getTimezoneOffset();
+    const offsetSign = offset >= 0 ? '+' : '-';
+    const offsetHours = Math.abs(Math.floor(offset / 60)).toString().padStart(2, '0');
+    const offsetMinutes = Math.abs(offset % 60).toString().padStart(2, '0');
+    const timezoneOffset = `${offsetSign}${offsetHours}:${offsetMinutes}`;
+    
+    const pubDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart}${timezoneOffset}`;
+    
     const defaultLatestJson: LatestJsonContent = {
       version: targetVersion,
       notes: await getGitCommitMessage(repoInfo),
-      pub_date: new Date().toISOString(),
+      pub_date: pubDate,
       platforms: platforms
     };
     

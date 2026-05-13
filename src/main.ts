@@ -33,7 +33,8 @@ async function uploadLatestVersion(targetVersion: string, localUploadDir?: strin
     }
 
     const cdnBaseUrl = core.getInput('cdn-base-url') || 'https://cdn.ali.yiruan.wang/';
-    await updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBaseUrl, ftpConfig);
+    const timezone = core.getInput('timezone') || 'Asia/Shanghai';
+    await updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBaseUrl, ftpConfig, timezone);
   } catch (error) {
     console.error('Error uploading latest version:', error);
     throw error;
@@ -59,7 +60,8 @@ async function run(): Promise<void> {
       ftpServerDir: core.getInput('ftp-server-dir'),
       uploadLatest: core.getInput('upload-latest') as 'disabled' | 'ci' | 'use',
       githubToken: core.getInput('github-token'),
-      cdnBaseUrl: core.getInput('cdn-base-url')
+      cdnBaseUrl: core.getInput('cdn-base-url'),
+      timezone: core.getInput('timezone')
     };
 
     // Validate inputs

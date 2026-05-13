@@ -68,17 +68,36 @@ export async function buildPlatformsFromAssets(release, downloadUrl, localUpload
     }
     return platforms;
 }
-export async function updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBase, ftpConfig) {
+export async function updateAndUploadLatestJson(release, targetVersion, localUploadDir, repoInfo, cdnBase, ftpConfig, timezone = 'Asia/Shanghai') {
     try {
         console.log('Updating latest.json...');
         const normalizedCdnBase = cdnBase.endsWith('/') ? cdnBase : cdnBase + '/';
         console.log('Generating new latest.json...');
         const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
         const platforms = await buildPlatformsFromAssets(release, downloadUrl, localUploadDir, repoInfo);
+        console.log(`Using timezone: ${timezone}`);
+        const timeStr = new Date().toLocaleString('en-US', {
+            timeZone: timezone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        const [datePart, timePart] = timeStr.split(', ');
+        const [month, day, year] = datePart.split('/');
+        const offset = -new Date().getTimezoneOffset();
+        const offsetSign = offset >= 0 ? '+' : '-';
+        const offsetHours = Math.abs(Math.floor(offset / 60)).toString().padStart(2, '0');
+        const offsetMinutes = Math.abs(offset % 60).toString().padStart(2, '0');
+        const timezoneOffset = `${offsetSign}${offsetHours}:${offsetMinutes}`;
+        const pubDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart}${timezoneOffset}`;
         const defaultLatestJson = {
             version: targetVersion,
             notes: await getGitCommitMessage(repoInfo),
-            pub_date: new Date().toISOString(),
+            pub_date: pubDate,
             platforms: platforms
         };
         const outputContent = JSON.stringify(defaultLatestJson, null, 2);

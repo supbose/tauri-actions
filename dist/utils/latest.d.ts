@@ -6,5 +6,5 @@ export declare function buildPlatformsFromAssets(release: Release, downloadUrl: 
         signature: string;
     };
 }>;
-export declare function updateAndUploadLatestJson(release: Release, targetVersion: string, localUploadDir: string | undefined, repoInfo: any, cdnBase: string, ftpConfig: FtpConfig | undefined): Promise<void>;
+export declare function updateAndUploadLatestJson(release: Release, targetVersion: string, localUploadDir: string | undefined, repoInfo: any, cdnBase: string, ftpConfig: FtpConfig | undefined, timezone?: string): Promise<void>;
 //# sourceMappingURL=latest.d.ts.map

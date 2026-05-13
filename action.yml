@@ -42,6 +42,10 @@ inputs:
     description: 'CDN base URL for download links (e.g., https://cdn.example.com/)'
     required: false
     default: 'https://cdn.ali.yiruan.wang/'
+  timezone:
+    description: 'Timezone for pub_date in latest.json (e.g., Asia/Shanghai, UTC)'
+    required: false
+    default: 'Asia/Shanghai'
 
 
 outputs:
