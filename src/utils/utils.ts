@@ -264,6 +264,8 @@ export function getOSIdentifier(): 'windows' | 'macos' | 'linux' {
   }
 }
 
+
+
 /**
  * Get the system directory prefix for FTP upload
  * @param baseDir - Base directory (e.g., 'download', 'updater')
@@ -418,4 +420,307 @@ export function getDefaultTauriExtensions(): string[] {
     '.7z',       // Cross-platform archive
     '.sig',      // Signature file
   ];
+}
+
+/**
+ * Tauri supported target platforms
+ */
+export type TauriTarget = 'windows' | 'macos' | 'linux' | 'ios' | 'android' | 'wasm32';
+
+/**
+ * Tauri supported OS platforms
+ */
+export type TauriOS = 'windows' | 'macos' | 'linux' | 'ios' | 'android' | 'freebsd' | 'openbsd' | 'netbsd';
+
+/**
+ * Platform mapping from Tauri target to OS identifier
+ */
+const TAURI_TARGET_OS_MAP: Record<TauriTarget, TauriOS> = {
+  'windows': 'windows',
+  'macos': 'macos',
+  'linux': 'linux',
+  'ios': 'ios',
+  'android': 'android',
+  'wasm32': 'linux', // WebAssembly targets inherit from host Linux environment
+};
+
+/**
+ * OS display names
+ */
+const OS_DISPLAY_NAMES: Record<TauriOS, string> = {
+  'windows': 'Windows',
+  'macos': 'macOS',
+  'linux': 'Linux',
+  'ios': 'iOS',
+  'android': 'Android',
+  'freebsd': 'FreeBSD',
+  'openbsd': 'OpenBSD',
+  'netbsd': 'NetBSD',
+};
+
+/**
+ * Target file extensions mapping
+ */
+const TARGET_EXTENSIONS: Record<TauriTarget, string[]> = {
+  'windows': ['.exe', '.msi', '.zip'],
+  'macos': ['.dmg', '.pkg', '.app', '.tar.gz'],
+  'linux': ['.deb', '.rpm', '.AppImage', '.tar.gz', '.tar.bz2', '.tar.xz'],
+  'ios': ['.ipa', '.app'],
+  'android': ['.apk', '.aab'],
+  'wasm32': ['.wasm', '.js'],
+};
+
+/**
+ * Get Tauri target from file extension
+ * @param extension - File extension (e.g., '.exe', '.dmg', '.deb')
+ * @returns Tauri target or null if unknown
+ */
+export function getTauriTargetFromExtension(extension: string): TauriTarget | null {
+  const ext = extension.toLowerCase();
+  
+  for (const [target, extensions] of Object.entries(TARGET_EXTENSIONS)) {
+    if (extensions.some(e => e.toLowerCase() === ext)) {
+      return target as TauriTarget;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Get OS from Tauri target
+ * @param target - Tauri target platform
+ * @returns Corresponding OS platform
+ */
+export function getOSFromTarget(target: TauriTarget): TauriOS {
+  return TAURI_TARGET_OS_MAP[target] || 'linux';
+}
+
+/**
+ * Check if a Tauri target is a desktop platform
+ * @param target - Tauri target
+ * @returns True if desktop platform (windows/macos/linux)
+ */
+export function isDesktopTarget(target: TauriTarget): boolean {
+  return target === 'windows' || target === 'macos' || target === 'linux';
+}
+
+/**
+ * Check if a Tauri target is a mobile platform
+ * @param target - Tauri target
+ * @returns True if mobile platform (ios/android)
+ */
+export function isMobileTarget(target: TauriTarget): boolean {
+  return target === 'ios' || target === 'android';
+}
+
+/**
+ * Check if a Tauri target is a web platform
+ * @param target - Tauri target
+ * @returns True if web platform (wasm32)
+ */
+export function isWebTarget(target: TauriTarget): boolean {
+  return target === 'wasm32';
+}
+
+/**
+ * Get supported file extensions for a Tauri target
+ * @param target - Tauri target platform
+ * @returns Array of file extensions
+ */
+export function getTargetExtensions(target: TauriTarget): string[] {
+  return [...(TARGET_EXTENSIONS[target] || [])];
+}
+
+/**
+ * Get display name for an OS
+ * @param os - OS platform
+ * @returns Human-readable display name
+ */
+export function getOSDisplayName(os: TauriOS): string {
+  return OS_DISPLAY_NAMES[os] || os;
+}
+
+/**
+ * Get display name for a Tauri target
+ * @param target - Tauri target platform
+ * @returns Human-readable display name
+ */
+export function getTargetDisplayName(target: TauriTarget): string {
+  return getOSDisplayName(getOSFromTarget(target));
+}
+
+/**
+ * Validate if a string is a valid Tauri target
+ * @param value - Value to check
+ * @returns True if valid Tauri target
+ */
+export function isValidTauriTarget(value: string): value is TauriTarget {
+  const validTargets: TauriTarget[] = ['windows', 'macos', 'linux', 'ios', 'android', 'wasm32'];
+  return validTargets.includes(value as TauriTarget);
+}
+
+/**
+ * Validate if a string is a valid Tauri OS
+ * @param value - Value to check
+ * @returns True if valid Tauri OS
+ */
+export function isValidTauriOS(value: string): value is TauriOS {
+  const validOS: TauriOS[] = ['windows', 'macos', 'linux', 'ios', 'android', 'freebsd', 'openbsd', 'netbsd'];
+  return validOS.includes(value as TauriOS);
+}
+
+/**
+ * Check if current platform matches the target
+ * @param target - Tauri target to check against
+ * @returns True if current OS matches the target
+ */
+export function matchesCurrentPlatform(target: TauriTarget): boolean {
+  const currentOS = getOSIdentifier();
+  const targetOS = getOSFromTarget(target);
+  
+  // Special case for wasm32 - matches any platform since it runs in browser
+  if (target === 'wasm32') {
+    return true;
+  }
+  
+  return currentOS === targetOS;
+}
+
+/**
+ * OS detection patterns for filename/path matching
+ */
+const OS_PATTERNS: Record<string, RegExp[]> = {
+  'windows': [
+    /[-_]win(?:dows)?[-_]/i,
+    /[-_]x64[-_]/i,
+    /[-_]x86[-_]/i,
+    /\.exe$/i,
+    /\.msi$/i,
+    /\bwin32\b/i,
+    /\bwindows\b/i,
+  ],
+  'macos': [
+    /[-_]mac(?:os)?[-_]/i,
+    /[-_]darwin[-_]/i,
+    /[-_]aarch64[-_]/i,
+    /\.dmg$/i,
+    /\.pkg$/i,
+    /\.app$/i,
+    /\bmacos\b/i,
+    /\bapple\b/i,
+  ],
+  'linux': [
+    /[-_]linux[-_]/i,
+    /[-_]ubuntu[-_]/i,
+    /[-_]debian[-_]/i,
+    /[-_]fedora[-_]/i,
+    /\.deb$/i,
+    /\.rpm$/i,
+    /\.AppImage$/i,
+    /\.tar\.(?:gz|bz2|xz)$/i,
+    /\blinux-gnu\b/i,
+    /\blinux-musl\b/i,
+  ],
+  'ios': [
+    /[-_]ios[-_]/i,
+    /\biphone\b/i,
+    /\bipad\b/i,
+    /\.ipa$/i,
+    /\.app$/i,
+    /-ios-/i,
+  ],
+  'android': [
+    /[-_]android[-_]/i,
+    /[-_]arm(?:64)?[-_]/i,
+    /\.apk$/i,
+    /\.aab$/i,
+    /-android-/i,
+  ],
+};
+
+/**
+ * Auto-detect OS platform from filename or file path
+ * @param filename - Filename or path to analyze
+ * @returns Detected OS platform or null if unknown
+ * 
+ * @example
+ * autoDetectOS('myapp-v1.0.0-windows-x64.exe') // returns 'windows'
+ * autoDetectOS('myapp-v1.0.0-macos.dmg')      // returns 'macos'
+ * autoDetectOS('myapp-v1.0.0-linux.AppImage')  // returns 'linux'
+ */
+export function autoDetectOS(filename: string): TauriOS | null {
+  if (!filename) return null;
+  
+  const lowerFilename = filename.toLowerCase();
+  
+  // Check patterns for each OS
+  for (const [os, patterns] of Object.entries(OS_PATTERNS)) {
+    for (const pattern of patterns) {
+      if (pattern.test(lowerFilename)) {
+        return os as TauriOS;
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Auto-detect Tauri target from filename or file path
+ * @param filename - Filename or path to analyze
+ * @returns Detected Tauri target or null if unknown
+ * 
+ * @example
+ * autoDetectTarget('myapp-v1.0.0-windows-x64.exe') // returns 'windows'
+ * autoDetectTarget('myapp-v1.0.0-macos.dmg')        // returns 'macos'
+ * autoDetectTarget('myapp-v1.0.0-linux.tar.gz')     // returns 'linux'
+ */
+export function autoDetectTarget(filename: string): TauriTarget | null {
+  const os = autoDetectOS(filename);
+  if (!os) return null;
+  
+  // Map OS to default target (some OS map directly to targets)
+  const osToTargetMap: Record<TauriOS, TauriTarget | null> = {
+    'windows': 'windows',
+    'macos': 'macos',
+    'linux': 'linux',
+    'ios': 'ios',
+    'android': 'android',
+    'freebsd': 'linux',  // Treat as Linux
+    'openbsd': 'linux',  // Treat as Linux
+    'netbsd': 'linux',   // Treat as Linux
+  };
+  
+  return osToTargetMap[os] || null;
+}
+
+/**
+ * Get auto-detected OS with fallback to current system OS
+ * @param filename - Filename or path to analyze (optional)
+ * @returns Detected OS or current system OS
+ */
+export function getAutoOS(filename?: string): TauriOS {
+  if (filename) {
+    const detected = autoDetectOS(filename);
+    if (detected) return detected;
+  }
+  
+  // Fallback to current system OS
+  return getOSIdentifier() as TauriOS;
+}
+
+/**
+ * Get auto-detected target with fallback to current system target
+ * @param filename - Filename or path to analyze (optional)
+ * @returns Detected target or current system target
+ */
+export function getAutoTarget(filename?: string): TauriTarget | null {
+  if (filename) {
+    const detected = autoDetectTarget(filename);
+    if (detected) return detected;
+  }
+  
+  // Fallback to current system target based on OS
+  return getOSIdentifier() as TauriTarget;
 }

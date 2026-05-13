@@ -5,7 +5,7 @@ import { getPlatformKeys } from './platform';
 import { getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
-import { formatDateTimeWithTimezone, getOSIdentifier, ensureTrailingSlash, joinUrl, getLocalSignature } from './utils';
+import { formatDateTimeWithTimezone, getAutoOS, ensureTrailingSlash, joinUrl, getLocalSignature } from './utils';
 
 /**
  * Get OS directory prefix based on platform key
@@ -157,7 +157,7 @@ export async function updateAndUploadLatestJson(
     if (ftpConfig) {
       console.log(`Uploading latest.json to FTP server: ${ftpConfig.host}`);
       console.log(`Server directory: updater/`);
-      const os = getOSIdentifier();
+      const os = getAutoOS();
       
       const updaterFtpConfig: FtpConfig = {
         ...ftpConfig,
