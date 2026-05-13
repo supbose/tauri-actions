@@ -38,6 +38,10 @@ describe('Validation Module Tests', () => {
       expect(isValidPath('relative/path')).toBe(true);
       expect(isValidPath('path/to/dir')).toBe(true);
       expect(isValidPath('./local/path')).toBe(true);
+      expect(isValidPath('C:/Windows/System32')).toBe(true);
+      expect(isValidPath('C:\\Windows\\System32')).toBe(true);
+      expect(isValidPath('D:/projects/my-app')).toBe(true);
+      expect(isValidPath('D:\\a\\tarui-updaer\\tarui-updaer/src-tauri/target/release/bundle/')).toBe(true);
     });
 
     it('should reject paths with dangerous characters', () => {

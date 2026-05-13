@@ -12,8 +12,25 @@ export function isValidUrl(url) {
 export function isValidPath(path) {
     if (!path)
         return false;
-    const dangerousPatterns = [/\.\./g, /[<>:"|?*]/g, /\0/g];
-    return !dangerousPatterns.some(pattern => pattern.test(path));
+    if (path.includes('..')) {
+        return false;
+    }
+    if (path.includes('\0')) {
+        return false;
+    }
+    const dangerousPatterns = [/[<>"|?*]/g];
+    for (const pattern of dangerousPatterns) {
+        if (pattern.test(path)) {
+            return false;
+        }
+    }
+    const colonMatches = path.match(/:/g);
+    if (colonMatches && colonMatches.length > 0) {
+        if (!/^[A-Za-z]:[\\/]/.test(path)) {
+            return false;
+        }
+    }
+    return true;
 }
 export function isValidVersion(version) {
     if (!version)

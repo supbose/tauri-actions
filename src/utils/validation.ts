@@ -27,8 +27,38 @@ export function isValidUrl(url: string): boolean {
  */
 export function isValidPath(path: string): boolean {
   if (!path) return false;
-  const dangerousPatterns = [/\.\./g, /[<>:"|?*]/g, /\0/g];
-  return !dangerousPatterns.some(pattern => pattern.test(path));
+  
+  // Check for path traversal
+  if (path.includes('..')) {
+    return false;
+  }
+  
+  // Check for null bytes
+  if (path.includes('\0')) {
+    return false;
+  }
+  
+  // Check for dangerous characters (excluding : which is needed for Windows paths)
+  // Allow : only if it's part of a Windows drive letter (e.g., C:)
+  const dangerousPatterns = [/[<>"|?*]/g];
+  for (const pattern of dangerousPatterns) {
+    if (pattern.test(path)) {
+      return false;
+    }
+  }
+  
+  // Special handling for : - only allow it as part of Windows drive letter (e.g., C:)
+  const colonMatches = path.match(/:/g);
+  if (colonMatches && colonMatches.length > 0) {
+    // If there's a colon, it should be at position 1 (like C:) or not exist at all
+    // For Windows paths like C:\path or C:/path
+    if (!/^[A-Za-z]:[\\/]/.test(path)) {
+      // Colon exists but not as a drive letter
+      return false;
+    }
+  }
+  
+  return true;
 }
 
 /**
