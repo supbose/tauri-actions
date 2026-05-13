@@ -4,6 +4,35 @@ import { getPlatformKeys } from './platform';
 import { getReleaseAssetContent, getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
+function formatDateTimeWithTimezone(date, timezone) {
+    const pad = (n) => n.toString().padStart(2, '0');
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    const parts = formatter.formatToParts(date);
+    const partMap = new Map(parts.map(p => [p.type, p.value]));
+    const year = partMap.get('year') || date.getUTCFullYear().toString();
+    const month = partMap.get('month') || pad(date.getUTCMonth() + 1);
+    const day = partMap.get('day') || pad(date.getUTCDate());
+    const hour = partMap.get('hour') || pad(date.getUTCHours());
+    const minute = partMap.get('minute') || pad(date.getUTCMinutes());
+    const second = partMap.get('second') || pad(date.getUTCSeconds());
+    const offsetDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+    const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const diffMs = offsetDate.getTime() - utcDate.getTime();
+    const offsetMinutes = Math.round(diffMs / 60000);
+    const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+    const offsetHours = pad(Math.floor(Math.abs(offsetMinutes) / 60));
+    const offsetMins = pad(Math.abs(offsetMinutes) % 60);
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}${offsetSign}${offsetHours}:${offsetMins}`;
+}
 export async function getSignatureForAsset(repoInfo, assetName, assets) {
     const sigAsset = assets.find(a => a.name === assetName + '.sig');
     if (sigAsset) {
@@ -76,24 +105,7 @@ export async function updateAndUploadLatestJson(release, targetVersion, localUpl
         const downloadUrl = `${normalizedCdnBase}download/v${targetVersion}`;
         const platforms = await buildPlatformsFromAssets(release, downloadUrl, localUploadDir, repoInfo);
         console.log(`Using timezone: ${timezone}`);
-        const timeStr = new Date().toLocaleString('en-US', {
-            timeZone: timezone,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        });
-        const [datePart, timePart] = timeStr.split(', ');
-        const [month, day, year] = datePart.split('/');
-        const offset = -new Date().getTimezoneOffset();
-        const offsetSign = offset >= 0 ? '+' : '-';
-        const offsetHours = Math.abs(Math.floor(offset / 60)).toString().padStart(2, '0');
-        const offsetMinutes = Math.abs(offset % 60).toString().padStart(2, '0');
-        const timezoneOffset = `${offsetSign}${offsetHours}:${offsetMinutes}`;
-        const pubDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart}${timezoneOffset}`;
+        const pubDate = formatDateTimeWithTimezone(new Date(), timezone);
         const defaultLatestJson = {
             version: targetVersion,
             notes: await getGitCommitMessage(repoInfo),

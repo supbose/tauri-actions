@@ -7,6 +7,51 @@ import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
 
 /**
+ * Format date/time with specified timezone to ISO 8601 format
+ * @param date - Date object
+ * @param timezone - Timezone string (e.g., Asia/Shanghai, UTC)
+ * @returns Formatted datetime string (e.g., 2024-01-15T10:30:00+08:00)
+ */
+function formatDateTimeWithTimezone(date: Date, timezone: string): string {
+  // Get UTC time components
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  
+  // Create a formatter for the date/time components in the specified timezone
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  
+  // Parse the formatted string
+  const parts = formatter.formatToParts(date);
+  const partMap = new Map(parts.map(p => [p.type, p.value]));
+  
+  const year = partMap.get('year') || date.getUTCFullYear().toString();
+  const month = partMap.get('month') || pad(date.getUTCMonth() + 1);
+  const day = partMap.get('day') || pad(date.getUTCDate());
+  const hour = partMap.get('hour') || pad(date.getUTCHours());
+  const minute = partMap.get('minute') || pad(date.getUTCMinutes());
+  const second = partMap.get('second') || pad(date.getUTCSeconds());
+  
+  // Calculate timezone offset for the specified timezone
+  const offsetDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+  const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+  const diffMs = offsetDate.getTime() - utcDate.getTime();
+  const offsetMinutes = Math.round(diffMs / 60000);
+  const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+  const offsetHours = pad(Math.floor(Math.abs(offsetMinutes) / 60));
+  const offsetMins = pad(Math.abs(offsetMinutes) % 60);
+  
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${offsetSign}${offsetHours}:${offsetMins}`;
+}
+
+/**
  * Get signature content for an asset from release assets
  * @param repoInfo - Repository info
  * @param assetName - Asset file name
@@ -131,28 +176,7 @@ export async function updateAndUploadLatestJson(
     
     // Generate pub_date with custom timezone
     console.log(`Using timezone: ${timezone}`);
-    const timeStr = new Date().toLocaleString('en-US', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-    // Convert to ISO format: YYYY-MM-DDTHH:mm:ss+TZ
-    const [datePart, timePart] = timeStr.split(', ');
-    const [month, day, year] = datePart.split('/');
-    
-    // Calculate timezone offset
-    const offset = -new Date().getTimezoneOffset();
-    const offsetSign = offset >= 0 ? '+' : '-';
-    const offsetHours = Math.abs(Math.floor(offset / 60)).toString().padStart(2, '0');
-    const offsetMinutes = Math.abs(offset % 60).toString().padStart(2, '0');
-    const timezoneOffset = `${offsetSign}${offsetHours}:${offsetMinutes}`;
-    
-    const pubDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart}${timezoneOffset}`;
+    const pubDate = formatDateTimeWithTimezone(new Date(), timezone);
     
     const defaultLatestJson: LatestJsonContent = {
       version: targetVersion,
