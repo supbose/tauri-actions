@@ -30,6 +30,7 @@ async function run() {
             sourceDir: core.getInput('source-dir'),
             targetRoot: core.getInput('target-root'),
             configFile: core.getInput('config-file'),
+            filterByVersion: core.getInput('filter-by-version') === 'true',
             enableFtp: core.getInput('enable-ftp'),
             ftpHost: core.getInput('ftp-host'),
             ftpUsername: core.getInput('ftp-username'),
@@ -64,7 +65,8 @@ async function run() {
             return;
         }
         core.setOutput('target-dir', targetDir);
-        const copyResult = copyFiles(inputs.sourceDir, targetDir, version);
+        const versionToFilter = inputs.filterByVersion ? version : undefined;
+        const copyResult = copyFiles(inputs.sourceDir, targetDir, versionToFilter);
         if (!copyResult.success) {
             core.setFailed(`Failed to copy files`);
             return;

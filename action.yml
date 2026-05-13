@@ -13,6 +13,10 @@ inputs:
     description: 'Path to tauri.conf.json'
     required: false
     default: 'src-tauri/tauri.conf.json'
+  filter-by-version:
+    description: '是否只复制符合当前版本号的文件到指定目录'
+    required: false
+    default: 'true'
   enable-ftp:
     description: 'FTP mode: disabled (default), ci (external FTP step), use (built-in FTP)'
     required: false

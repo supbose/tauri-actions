@@ -124,6 +124,10 @@ export function validateInputs(inputs: ActionInputs): ValidationResult {
     errors.push('config-file contains invalid characters or path traversal');
   }
 
+  if (inputs.filterByVersion !== undefined && typeof inputs.filterByVersion !== 'boolean') {
+    errors.push('filter-by-version must be a boolean value');
+  }
+
   const validFtpModes = ['disabled', 'ci', 'use'];
   if (!validFtpModes.includes(inputs.enableFtp)) {
     errors.push(`enable-ftp must be one of: ${validFtpModes.join(', ')}`);

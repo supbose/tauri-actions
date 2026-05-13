@@ -55,6 +55,7 @@ jobs:
 | `source-dir` | ❌ | `src-tauri/target/release/bundle/` | 包含打包文件的源目录 |
 | `target-root` | ❌ | `src-tauri/target/release/fabu/` | 发布文件的目标根目录 |
 | `config-file` | ❌ | `src-tauri/tauri.conf.json` | Tauri 配置文件路径，用于提取版本号 |
+| `filter-by-version` | ❌ | `true` | 是否只复制符合当前版本号的文件到指定目录 |
 | `enable-ftp` | ❌ | `disabled` | FTP 模式：`disabled`、`ci`、`use` |
 | `ftp-host` | ⚠️ | - | FTP 服务器地址（`enable-ftp` 为 `use` 时必需） |
 | `ftp-username` | ⚠️ | - | FTP 用户名（`enable-ftp` 为 `use` 时必需） |
@@ -66,6 +67,15 @@ jobs:
 | `timezone` | ❌ | `Asia/Shanghai` | `latest.json` 中 `pub_date` 的时区 |
 
 ### 参数详细说明
+
+#### `filter-by-version`
+
+控制是否只复制包含当前版本号的文件。
+
+- 默认值：`true`
+- 当设置为 `true` 时，只复制文件名中包含当前版本号的文件
+- 当设置为 `false` 时，复制所有文件
+- 示例：版本号为 `1.0.0`，文件 `app_1.0.0_x64.exe` 会被复制，而 `app_0.9.0_x64.exe` 会被跳过
 
 #### `enable-ftp` 选项
 

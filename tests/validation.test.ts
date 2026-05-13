@@ -117,6 +117,7 @@ describe('Validation Module Tests', () => {
         sourceDir: 'src-tauri/target/release/bundle/',
         targetRoot: 'src-tauri/target/release/fabu/',
         configFile: 'src-tauri/tauri.conf.json',
+        filterByVersion: true,
         enableFtp: 'disabled',
         ftpHost: '',
         ftpUsername: '',
