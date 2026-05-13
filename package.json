@@ -7,7 +7,7 @@
     "build": "tsc",
     "package": "esbuild src/main.ts --bundle --platform=node --outfile=dist/index.js --minify",
     "mbump": "mbump",
-    "build:full": "pnpm build && pnpm package && pnpm mbump",
+    "build:full": "pnpm build && pnpm package",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "up": "npx taze -I",

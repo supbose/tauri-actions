@@ -15,14 +15,27 @@ import { formatDateTimeWithTimezone, ensureTrailingSlash, joinUrl } from './util
  * @returns Signature content or empty string
  */
 export async function getSignatureForAsset(repoInfo: any, assetName: string, assets: ReleaseAsset[]): Promise<string> {
+  // First try to find exact matching signature file
   const sigAsset = assets.find(a => a.name === assetName + '.sig');
-  if (sigAsset) {
+  
+  // If not found, try to find any .sig file as fallback
+  let fallbackSigAsset = null;
+  if (!sigAsset) {
+    fallbackSigAsset = assets.find(a => a.name.toLowerCase().endsWith('.sig'));
+    if (fallbackSigAsset) {
+      console.log(`No exact signature found for ${assetName}, using fallback: ${fallbackSigAsset.name}`);
+    }
+  }
+  
+  const targetAsset = sigAsset || fallbackSigAsset;
+  
+  if (targetAsset) {
     try {
-      const signatureContent = await getReleaseAssetContent(repoInfo, sigAsset);
+      const signatureContent = await getReleaseAssetContent(repoInfo, targetAsset);
       console.log(`Loaded signature for ${assetName}: ${signatureContent.substring(0, 50)}...`);
       return signatureContent.trim();
     } catch (error) {
-      console.error(`Failed to load signature for ${assetName}.sig:`, error);
+      console.error(`Failed to load signature for ${targetAsset.name}:`, error);
     }
   }
   return '';
