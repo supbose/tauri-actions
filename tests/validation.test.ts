@@ -118,6 +118,7 @@ describe('Validation Module Tests', () => {
         targetRoot: 'src-tauri/target/release/fabu/',
         configFile: 'src-tauri/tauri.conf.json',
         filterByVersion: true,
+        fileExtensions: [],
         enableFtp: 'disabled',
         ftpHost: '',
         ftpUsername: '',

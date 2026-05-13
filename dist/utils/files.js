@@ -48,7 +48,7 @@ export function createDirectory(dirPath) {
         return false;
     }
 }
-export function copyFiles(sourceDir, targetDir, version) {
+export function copyFiles(sourceDir, targetDir, version, extensions) {
     try {
         if (!fs.existsSync(sourceDir)) {
             throw new Error(`Source directory does not exist: ${sourceDir}`);
@@ -58,6 +58,9 @@ export function copyFiles(sourceDir, targetDir, version) {
         if (version) {
             console.log(`Filtering files by version: ${version}`);
         }
+        if (extensions && extensions.length > 0) {
+            console.log(`Filtering files by extensions: ${extensions.join(', ')}`);
+        }
         const files = getAllFiles(sourceDir);
         let fileCount = 0;
         let errorCount = 0;
@@ -66,10 +69,19 @@ export function copyFiles(sourceDir, targetDir, version) {
         for (const file of files) {
             try {
                 const fileName = path.basename(file);
+                const fileExt = path.extname(fileName).toLowerCase();
                 if (version && !fileName.includes(version)) {
                     console.log(`Skipped (version mismatch): ${fileName}`);
                     skippedCount++;
                     continue;
+                }
+                if (extensions && extensions.length > 0) {
+                    const normalizedExtensions = extensions.map(ext => ext.startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`);
+                    if (!normalizedExtensions.includes(fileExt)) {
+                        console.log(`Skipped (extension mismatch): ${fileName}`);
+                        skippedCount++;
+                        continue;
+                    }
                 }
                 const targetPath = path.join(targetDir, fileName);
                 fs.copyFileSync(file, targetPath);

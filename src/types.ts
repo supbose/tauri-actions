@@ -8,6 +8,7 @@ export interface ActionInputs {
   targetRoot: string;
   configFile: string;
   filterByVersion: boolean;
+  fileExtensions: string[];
   enableFtp: 'disabled' | 'ci' | 'use';
   ftpHost: string;
   ftpUsername: string;

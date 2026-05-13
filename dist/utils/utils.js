@@ -209,4 +209,23 @@ export function throttle(fn, delayMs) {
         }
     };
 }
+export function getDefaultTauriExtensions() {
+    return [
+        '.exe',
+        '.msi',
+        '.zip',
+        '.dmg',
+        '.pkg',
+        '.app',
+        '.deb',
+        '.rpm',
+        '.AppImage',
+        '.tar.gz',
+        '.tar.bz2',
+        '.tar.xz',
+        '.zip',
+        '.7z',
+        '.sig',
+    ];
+}
 //# sourceMappingURL=utils.js.map

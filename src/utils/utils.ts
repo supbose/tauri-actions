@@ -391,3 +391,31 @@ export function throttle<T extends (...args: any[]) => any>(fn: T, delayMs: numb
     }
   };
 }
+
+/**
+ * Get default Tauri-supported file extensions for all platforms
+ * @returns Array of default file extensions
+ */
+export function getDefaultTauriExtensions(): string[] {
+  return [
+    // Windows
+    '.exe',      // Windows installer
+    '.msi',      // Windows installer
+    '.zip',      // Windows portable
+    // macOS
+    '.dmg',      // macOS disk image
+    '.pkg',      // macOS installer
+    '.app',      // macOS application bundle
+    // Linux
+    '.deb',      // Debian/Ubuntu
+    '.rpm',      // Red Hat/Fedora
+    '.AppImage', // Portable Linux
+    '.tar.gz',   // Linux archive
+    '.tar.bz2',  // Linux archive
+    '.tar.xz',   // Linux archive
+    // Cross-platform
+    '.zip',      // Cross-platform archive
+    '.7z',       // Cross-platform archive
+    '.sig',      // Signature file
+  ];
+}

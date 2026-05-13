@@ -72,9 +72,10 @@ export function createDirectory(dirPath: string): boolean {
  * @param sourceDir - Source directory
  * @param targetDir - Target directory
  * @param version - Version number to filter files
+ * @param extensions - Array of file extensions to include (e.g., ['.exe', '.msi', '.dmg'])
  * @returns Process result
  */
-export function copyFiles(sourceDir: string, targetDir: string, version?: string): ProcessResult {
+export function copyFiles(sourceDir: string, targetDir: string, version?: string, extensions?: string[]): ProcessResult {
   try {
     if (!fs.existsSync(sourceDir)) {
       throw new Error(`Source directory does not exist: ${sourceDir}`);
@@ -84,6 +85,9 @@ export function copyFiles(sourceDir: string, targetDir: string, version?: string
     console.log(`Copying files from ${sourceDir} to ${targetDir} (flat structure)`);
     if (version) {
       console.log(`Filtering files by version: ${version}`);
+    }
+    if (extensions && extensions.length > 0) {
+      console.log(`Filtering files by extensions: ${extensions.join(', ')}`);
     }
 
     const files = getAllFiles(sourceDir);
@@ -95,11 +99,21 @@ export function copyFiles(sourceDir: string, targetDir: string, version?: string
     for (const file of files) {
       try {
         const fileName = path.basename(file);
+        const fileExt = path.extname(fileName).toLowerCase();
         
         if (version && !fileName.includes(version)) {
           console.log(`Skipped (version mismatch): ${fileName}`);
           skippedCount++;
           continue;
+        }
+        
+        if (extensions && extensions.length > 0) {
+          const normalizedExtensions = extensions.map(ext => ext.startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`);
+          if (!normalizedExtensions.includes(fileExt)) {
+            console.log(`Skipped (extension mismatch): ${fileName}`);
+            skippedCount++;
+            continue;
+          }
         }
         
         const targetPath = path.join(targetDir, fileName);

@@ -20,4 +20,5 @@ export declare function retry<T>(fn: () => Promise<T>, maxRetries?: number, dela
 export declare function groupBy<T, K extends string | number>(array: T[], keyFn: (item: T) => K): Record<K, T[]>;
 export declare function debounce<T extends (...args: any[]) => any>(fn: T, delayMs: number): (...args: Parameters<T>) => void;
 export declare function throttle<T extends (...args: any[]) => any>(fn: T, delayMs: number): (...args: Parameters<T>) => void;
+export declare function getDefaultTauriExtensions(): string[];
 //# sourceMappingURL=utils.d.ts.map

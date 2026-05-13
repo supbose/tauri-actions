@@ -16,7 +16,7 @@ import { copyFiles, createDirectory, verifyFiles, formatPath, getAllFiles } from
 import { uploadToFTP } from './utils/ftp';
 import { updateAndUploadLatestJson } from './utils/latest';
 import { validateInputs, sanitizeLogMessage } from './utils/validation';
-import { getSystemDirectory, getOSIdentifier } from './utils/utils';
+import { getSystemDirectory, getOSIdentifier, getDefaultTauriExtensions } from './utils/utils';
 
 /**
  * Upload latest version files
@@ -57,6 +57,9 @@ async function run(): Promise<void> {
       targetRoot: core.getInput('target-root'),
       configFile: core.getInput('config-file'),
       filterByVersion: process.platform === 'win32' && core.getInput('filter-by-version') === 'true',
+      fileExtensions: core.getInput('file-extensions')
+        ? core.getInput('file-extensions').split(',').map(ext => ext.trim()).filter(ext => ext)
+        : getDefaultTauriExtensions(),
       enableFtp: core.getInput('enable-ftp') as 'disabled' | 'ci' | 'use',
       ftpHost: core.getInput('ftp-host'),
       ftpUsername: core.getInput('ftp-username'),
@@ -105,7 +108,7 @@ async function run(): Promise<void> {
 
     // Copy files from source to target (filter by version if enabled)
     const versionToFilter = inputs.filterByVersion ? version : undefined;
-    const copyResult = copyFiles(inputs.sourceDir, targetDir, versionToFilter);
+    const copyResult = copyFiles(inputs.sourceDir, targetDir, versionToFilter, inputs.fileExtensions);
     if (!copyResult.success) {
       core.setFailed(`Failed to copy files`);
       return;

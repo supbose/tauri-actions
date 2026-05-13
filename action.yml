@@ -17,6 +17,10 @@ inputs:
     description: '是否只复制符合当前版本号的文件到指定目录'
     required: false
     default: 'true'
+  file-extensions:
+    description: 'Comma-separated list of file extensions to copy (e.g., .exe,.msi,.dmg)'
+    required: false
+    default: ''
   enable-ftp:
     description: 'FTP mode: disabled (default), ci (external FTP step), use (built-in FTP)'
     required: false
