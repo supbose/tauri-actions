@@ -4,7 +4,7 @@ import { getPlatformKeys } from './platform';
 import { getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
-import { formatDateTimeWithTimezone, getAutoOS, ensureTrailingSlash, joinUrl, getLocalSignature } from './utils';
+import { getISOWithTimeZone, getAutoOS, ensureTrailingSlash, joinUrl, getLocalSignature } from './utils';
 function getOSDirectory(platformKey) {
     if (platformKey.startsWith('windows')) {
         return 'windows';
@@ -73,7 +73,7 @@ export async function updateAndUploadLatestJson(release, targetVersion, localUpl
         const serverDir = ftpConfig?.serverDir || '';
         const platforms = await buildPlatformsFromAssets(release, normalizedCdnBase, targetVersion, localUploadDir, repoInfo, serverDir);
         console.log(`Using timezone: ${timezone}`);
-        const pubDate = formatDateTimeWithTimezone(new Date(), timezone);
+        const pubDate = getISOWithTimeZone(new Date(), timezone);
         const defaultLatestJson = {
             version: targetVersion,
             notes: await getGitCommitMessage(repoInfo),

@@ -132,11 +132,15 @@ export function formatDateTimeWithTimezone(date: Date | number, timezone: string
   const year = partMap.get('year')!;
   const month = partMap.get('month')!;
   const day = partMap.get('day')!;
-  const hour = partMap.get('hour')!;
+  let hour = partMap.get('hour')!;
   const minute = partMap.get('minute')!;
   const second = partMap.get('second')!;
   const ms = String(dateObj.getUTCMilliseconds()).padStart(3, '0');
-  
+
+  if (hour === '24') {
+    hour = '00';
+  }
+
   return `${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}Z`;
 }
 
@@ -149,6 +153,51 @@ export function formatUTCDate(date: Date | number): string {
   const dateObj = typeof date === 'number' ? new Date(date) : date;
   return dateObj.toISOString();
 }
+/**
+ * Get ISO 8601 string with timezone offset
+ * @param date - Date object or timestamp
+ * @param timeZone - Timezone string (e.g., Asia/Shanghai, UTC)
+ * @returns ISO 8601 string with timezone offset (e.g., 2026-05-13T16:03:06.555+08:00)
+ */
+export function getISOWithTimeZone(date: Date | number,timeZone: string = 'Asia/Shanghai') : string {
+  const dateObj = typeof date === 'number' ? new Date(date) : date;
+
+  // 使用 Intl.DateTimeFormat 获取指定时区的各个时间部分
+  const formatter = new Intl.DateTimeFormat('en-CA', { // en-CA 语言环境默认使用 YYYY-MM-DD 格式
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: timeZone,
+    timeZoneName: 'longOffset' // 获取如 "GMT+8" 或 "GMT" 的时区名称
+  });
+
+  const parts = formatter.formatToParts(dateObj);
+  const partValues = {};
+  parts.forEach(p => (partValues as any)[p.type] = p.value);
+
+  // 提取并拼接成 ISO 格式
+  const { year, month, day, hour, minute, second, timeZoneName } = partValues as any;
+
+  // 将 "GMT+8" 或 "GMT-5" 等格式转换为标准的 "+08:00" 或 "-05:00"
+  let offset = 'Z';
+  if (timeZoneName !== 'GMT') {
+    const match = timeZoneName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+    if (match) {
+      const sign = match[1];
+      const hours = match[2].padStart(2, '0');
+      const minutes = match[3] || '00';
+      offset = `${sign}${hours}:${minutes}`;
+    }
+  }
+
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`;
+}
+
+
 
 /**
  * Wait for specified milliseconds

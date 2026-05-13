@@ -60,15 +60,47 @@ export function formatDateTimeWithTimezone(date, timezone = 'Asia/Shanghai') {
     const year = partMap.get('year');
     const month = partMap.get('month');
     const day = partMap.get('day');
-    const hour = partMap.get('hour');
+    let hour = partMap.get('hour');
     const minute = partMap.get('minute');
     const second = partMap.get('second');
     const ms = String(dateObj.getUTCMilliseconds()).padStart(3, '0');
+    if (hour === '24') {
+        hour = '00';
+    }
     return `${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}Z`;
 }
 export function formatUTCDate(date) {
     const dateObj = typeof date === 'number' ? new Date(date) : date;
     return dateObj.toISOString();
+}
+export function getISOWithTimeZone(date, timeZone = 'Asia/Shanghai') {
+    const dateObj = typeof date === 'number' ? new Date(date) : date;
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: timeZone,
+        timeZoneName: 'longOffset'
+    });
+    const parts = formatter.formatToParts(dateObj);
+    const partValues = {};
+    parts.forEach(p => partValues[p.type] = p.value);
+    const { year, month, day, hour, minute, second, timeZoneName } = partValues;
+    let offset = 'Z';
+    if (timeZoneName !== 'GMT') {
+        const match = timeZoneName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+        if (match) {
+            const sign = match[1];
+            const hours = match[2].padStart(2, '0');
+            const minutes = match[3] || '00';
+            offset = `${sign}${hours}:${minutes}`;
+        }
+    }
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`;
 }
 export function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

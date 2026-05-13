@@ -5,7 +5,7 @@ import { getPlatformKeys } from './platform';
 import { getGitCommitMessage } from './github';
 import { getAllFiles } from './files';
 import { uploadToFTP } from './ftp';
-import { formatDateTimeWithTimezone, getAutoOS, ensureTrailingSlash, joinUrl, getLocalSignature } from './utils';
+import { getISOWithTimeZone, getAutoOS, ensureTrailingSlash, joinUrl, getLocalSignature } from './utils';
 
 /**
  * Get OS directory prefix based on platform key
@@ -131,7 +131,7 @@ export async function updateAndUploadLatestJson(
     const platforms = await buildPlatformsFromAssets(release, normalizedCdnBase, targetVersion, localUploadDir, repoInfo, serverDir);
     
     console.log(`Using timezone: ${timezone}`);
-    const pubDate = formatDateTimeWithTimezone(new Date(), timezone);
+    const pubDate = getISOWithTimeZone(new Date(), timezone);
     
     const defaultLatestJson: LatestJsonContent = {
       version: targetVersion,

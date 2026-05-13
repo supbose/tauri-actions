@@ -17,7 +17,8 @@ import {
   groupBy,
   debounce,
   throttle,
-  wait
+  wait,
+  getISOWithTimeZone
 } from '../src/utils/utils';
 import { getPlatformKeys } from '../src/utils/platform';
 
@@ -193,6 +194,39 @@ describe('Utils Module Tests', () => {
       const date = new Date('2024-01-15T10:30:00Z');
       const result = formatUTCDate(date);
       expect(result).toMatch(/^2024-01-15T\d{2}:30:00/);
+    });
+  });
+
+  describe('getISOWithTimeZone', () => {
+    it('should format date with Asia/Shanghai timezone offset', () => {
+      const date = new Date('2024-01-15T10:30:00.000Z');
+      const result = getISOWithTimeZone(date, 'Asia/Shanghai');
+      expect(result).toBe('2024-01-15T18:30:00+08:00');
+    });
+
+    it('should format date with UTC timezone', () => {
+      const date = new Date('2024-01-15T10:30:00.000Z');
+      const result = getISOWithTimeZone(date, 'UTC');
+      expect(result).toBe('2024-01-15T10:30:00Z');
+    });
+
+    it('should handle timestamp input', () => {
+      const timestamp = 1705315800000;
+      const result = getISOWithTimeZone(timestamp, 'Asia/Shanghai');
+      expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/);
+    });
+
+    it('should use Asia/Shanghai as default timezone', () => {
+      const date = new Date('2024-01-15T10:30:00.000Z');
+      const result = getISOWithTimeZone(date);
+      expect(result).toBe('2024-01-15T18:30:00+08:00');
+    });
+
+    it('should handle hour 24 by converting to 00', () => {
+      const date = new Date('2024-01-15T23:30:00.000Z');
+      const result = getISOWithTimeZone(date, 'Asia/Shanghai');
+      expect(result).not.toContain('T24:');
+      expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/);
     });
   });
 
