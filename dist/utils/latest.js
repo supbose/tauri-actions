@@ -86,69 +86,18 @@ export async function updateAndUploadLatestJson(release, targetVersion, localUpl
     try {
         console.log('Updating latest.json...');
         const normalizedCdnBase = ensureTrailingSlash(cdnBase);
-        const latestJsonAsset = release.assets.find(a => a.name === 'latest.json');
-        let outputContent = '';
+        console.log('Generating new latest.json...');
         const serverDir = ftpConfig?.serverDir || '';
-        if (!latestJsonAsset) {
-            console.log('latest.json asset not found, creating a new one');
-            const platforms = await buildPlatformsFromAssets(release, normalizedCdnBase, targetVersion, localUploadDir, repoInfo, serverDir);
-            console.log(`Using timezone: ${timezone}`);
-            const pubDate = formatDateTimeWithTimezone(new Date(), timezone);
-            const defaultLatestJson = {
-                version: targetVersion,
-                notes: await getGitCommitMessage(repoInfo),
-                pub_date: pubDate,
-                platforms: platforms
-            };
-            outputContent = JSON.stringify(defaultLatestJson, null, 2);
-        }
-        else {
-            console.log('Found existing latest.json asset, updating CDN URL');
-            try {
-                const contentStr = await getReleaseAssetContent(repoInfo, latestJsonAsset);
-                console.log(`latest.json content (first 500 chars): ${contentStr.substring(0, 500)}`);
-                let contentJson;
-                try {
-                    contentJson = JSON.parse(contentStr);
-                }
-                catch (parseError) {
-                    console.warn('Failed to parse latest.json as JSON, creating new one:', parseError);
-                    contentJson = {
-                        version: targetVersion,
-                        notes: '',
-                        platforms: {}
-                    };
-                }
-                const version = contentJson.version || targetVersion;
-                console.log('Version:', version);
-                if (contentJson.platforms) {
-                    for (const [platformKey, platformData] of Object.entries(contentJson.platforms)) {
-                        const data = platformData;
-                        const fileName = path.basename(data.url || '');
-                        const osDir = getOSDirectory(platformKey);
-                        contentJson.platforms[platformKey] = {
-                            url: joinUrl(normalizedCdnBase, serverDir, osDir, `v${version}`, fileName),
-                            signature: data.signature || ''
-                        };
-                    }
-                }
-                console.log(`Using timezone: ${timezone}`);
-                contentJson.pub_date = formatDateTimeWithTimezone(new Date(), timezone);
-                outputContent = JSON.stringify(contentJson, null, 2);
-            }
-            catch (error) {
-                console.error('Failed to update existing latest.json, creating new one:', error);
-                const platforms = await buildPlatformsFromAssets(release, normalizedCdnBase, targetVersion, localUploadDir, repoInfo, serverDir);
-                console.log(`Using timezone: ${timezone}`);
-                const pubDate = formatDateTimeWithTimezone(new Date(), timezone);
-                outputContent = JSON.stringify({
-                    version: targetVersion,
-                    notes: await getGitCommitMessage(repoInfo),
-                    pub_date: pubDate,
-                    platforms: platforms
-                }, null, 2);
-            }
-        }
+        const platforms = await buildPlatformsFromAssets(release, normalizedCdnBase, targetVersion, localUploadDir, repoInfo, serverDir);
+        console.log(`Using timezone: ${timezone}`);
+        const pubDate = formatDateTimeWithTimezone(new Date(), timezone);
+        const defaultLatestJson = {
+            version: targetVersion,
+            notes: await getGitCommitMessage(repoInfo),
+            pub_date: pubDate,
+            platforms: platforms
+        };
+        const outputContent = JSON.stringify(defaultLatestJson, null, 2);
         const outputDir = './output';
         if (!fs.existsSync(outputDir)) {
             fs.mkdirSync(outputDir, { recursive: true });
