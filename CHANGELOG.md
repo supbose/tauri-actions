@@ -1,4 +1,27 @@
 
+## v0.0.16
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.15...v0.0.16)
+
+### 🚀 特性
+
+- **upload:** Add FTP upload support for latest.json (f16d421)
+- 添加时区配置以自定义latest.json的发布时间 (d8723e5)
+
+### 🩹 修复
+
+- **ftp:** 标准化ftp上传的目录路径格式 (3e65fa0)
+- **ftp:** 修正FTP上传目录的拼接逻辑 (5d4c2b3)
+- **github utils:** 完善release资源内容获取的类型处理 (c2e97cb)
+- **utils:** 修复latest.json更新逻辑并增加错误处理 (8a93b2b)
+
+### 💅 重构
+
+- 重构项目工具模块结构 (b7ed305)
+- 调整FTP上传顺序并新增latest.json复制逻辑 (f0ecd4a)
+- **utils/latest:** 简化latest.json生成逻辑，不再读取现有资源 (cfe1bc2)
+- **utils/latest:** 重构时区格式化日期逻辑 (e867a3c)
+
 ## v0.0.15
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.14...v0.0.15)
