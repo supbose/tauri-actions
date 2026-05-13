@@ -172,7 +172,7 @@ async function run(): Promise<void> {
         }
         
         // Build system-specific download directory path
-        const downloadDir = `${osIdentifier}/download/v${version}/`;
+        const downloadDir = `${osIdentifier}/v${version}/`;
         const finalServerDir = ftpConfig.serverDir ? `${ftpConfig.serverDir}${downloadDir}` : downloadDir;
         
         const uploadResult = await uploadToFTP(targetDir, {

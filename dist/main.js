@@ -119,7 +119,7 @@ async function run() {
                         console.error('Failed to generate latest version:', error);
                     }
                 }
-                const downloadDir = `${osIdentifier}/download/v${version}/`;
+                const downloadDir = `${osIdentifier}/v${version}/`;
                 const finalServerDir = ftpConfig.serverDir ? `${ftpConfig.serverDir}${downloadDir}` : downloadDir;
                 const uploadResult = await uploadToFTP(targetDir, {
                     ...ftpConfig,
