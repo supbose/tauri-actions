@@ -99,11 +99,30 @@ export async function getReleaseAssetContent(repoInfo: RepositoryInfo, asset: Re
       repo: repoInfo.repo,
       asset_id: asset.id,
       headers: {
-        accept: 'application/octet-stream'
+        accept: 'application/json'
       }
     });
 
-    return response.data as unknown as string;
+    // Handle different response types
+    const data = response.data;
+    console.log(`Asset content type: ${typeof data}, constructor: ${data?.constructor?.name}`);
+    
+    if (data instanceof ArrayBuffer) {
+      console.log('Converting ArrayBuffer to string');
+      return Buffer.from(data).toString('utf-8');
+    } else if (Buffer.isBuffer(data)) {
+      console.log('Converting Buffer to string');
+      return data.toString('utf-8');
+    } else if (typeof data === 'string') {
+      console.log('Data is already string');
+      return data;
+    } else if (typeof data === 'object') {
+      console.log('Data is object, stringifying');
+      return JSON.stringify(data);
+    } else {
+      console.warn(`Unexpected data type for asset ${asset.name}: ${typeof data}`);
+      return String(data);
+    }
   } catch (error) {
     console.error(`Error fetching asset content for ${asset.name}:`, error);
     throw error;
