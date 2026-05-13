@@ -108,7 +108,7 @@ export async function getGitCommitMessage(repoInfo) {
         });
         if (response.data.length > 0) {
             const commit = response.data[0];
-            const message = commit.commit.message.split('\n')[0];
+            const message = commit.commit.message;
             console.log(`Latest commit message: ${message}`);
             return message;
         }
