@@ -1,4 +1,12 @@
 
+## v0.0.17
+
+[compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.16...v0.0.17)
+
+### 💅 重构
+
+- 提取通用工具函数并重构现有代码 (fe0b333)
+
 ## v0.0.16
 
 [compare changes](https://cnb.cool/supbose/tauri-actions/compare/v0.0.15...v0.0.16)
